@@ -7,6 +7,7 @@ const std::vector<sf::Color> MAP_COLORS = {
     sf::Color(255, 200, 50),  // deep yellow
     sf::Color(150, 30, 70),  // бордовый
     sf::Color(2, 124, 2),  // dark green active ship
+    sf::Color(2, 124, 2),  // borders of reachable cells
     sf::Color(255, 255, 255),  // white
     sf::Color(255, 255, 0),    // Желтый
     sf::Color(255, 0, 0),      // Красный
@@ -29,7 +30,7 @@ ColorScheme colScheme = COLORS;
 inline sf::Color getColorByThreshold(double value, double deepWater, double water, double land) {
     if (value <= deepWater) return sf::Color(0x0245ABFF); // deepWater
     if (value <= water) return sf::Color(0x1E5AC8FF);    // water
-    if (value <= land) return sf::Color(0xA08C5AFF);     // land
+    if (value <= land) return sf::Color(0x3D7A51FF);     // land 0xA08C5AFF
     return sf::Color(0x2D6441FF);                        // forest
 }
 

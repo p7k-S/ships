@@ -15,7 +15,7 @@
 
 namespace gl = GameLogic;
 
-void drawShipBar(sf::RenderWindow& window, gl::Ship* ship, float x, float y, float hexRadius, sf::Font& font) {
+void drawShipBar(sf::RenderWindow& window, gl::Ship* ship, float x, float y, float hexRadius, sf::Font& font, int font_size) {
     if (!ship) return;
     
     float healthPercent = static_cast<float>(ship->getHealth()) / ship->getMaxHealth();
@@ -34,20 +34,43 @@ void drawShipBar(sf::RenderWindow& window, gl::Ship* ship, float x, float y, flo
     window.draw(healthBar);
     
     if (font.getInfo().family != "") {
+        // Функция для рисования текста с обводкой
+        auto drawTextWithOutline = [&](const std::string& str, float posX, float posY, sf::Color fillColor, int charSize) {
+            // Основной текст
+            sf::Text text;
+            text.setFont(font);
+            text.setString(str);
+            text.setCharacterSize(charSize);
+            text.setFillColor(fillColor);
+            text.setStyle(sf::Text::Bold);
+            text.setPosition(posX, posY);
+            
+            // Черная обводка (рисуем смещенные копии)
+            sf::Text outline = text;
+            outline.setFillColor(sf::Color::Black);
+            
+            // Рисуем обводку со смещениями
+            outline.setPosition(posX - 1, posY - 1); window.draw(outline);
+            outline.setPosition(posX + 1, posY - 1); window.draw(outline);
+            outline.setPosition(posX - 1, posY + 1); window.draw(outline);
+            outline.setPosition(posX + 1, posY + 1); window.draw(outline);
+            
+            // Рисуем основной текст поверх
+            window.draw(text);
+        };
+        
         // HP зеленый
         sf::Text hpText;
         hpText.setFont(font);
         hpText.setString(std::to_string(ship->getHealth()));
-        hpText.setCharacterSize(10);
-        hpText.setFillColor(sf::Color::Green);
+        hpText.setCharacterSize(font_size);
         hpText.setStyle(sf::Text::Bold);
         
         // Урон красный
         sf::Text damageText;
         damageText.setFont(font);
         damageText.setString(std::to_string(static_cast<int>(ship->getDamage())));
-        damageText.setCharacterSize(10);
-        damageText.setFillColor(sf::Color::Red);
+        damageText.setCharacterSize(font_size);
         damageText.setStyle(sf::Text::Bold);
         
         // Позиционируем рядом
@@ -56,32 +79,37 @@ void drawShipBar(sf::RenderWindow& window, gl::Ship* ship, float x, float y, flo
         
         float totalWidth = hpBounds.width + damageBounds.width + 10; // +10 для отступа
         
-        hpText.setPosition(x - totalWidth/2, y - hexRadius - 20);
-        damageText.setPosition(x - totalWidth/2 + hpBounds.width + 10, y - hexRadius - 20);
+        float hpX = x - totalWidth/2;
+        float damageX = x - totalWidth/2 + hpBounds.width + 10;
+        float textY = y - hexRadius - 20;
         
-        window.draw(hpText);
-        window.draw(damageText);
-                // Золото желтый (добавляем под полоской HP)
+        // Рисуем с обводкой
+        drawTextWithOutline(std::to_string(ship->getHealth()), hpX, textY, sf::Color::Green, 10);
+        drawTextWithOutline(std::to_string(static_cast<int>(ship->getDamage())), damageX, textY, sf::Color::Red, 10);
+        
+        // Золото желтый (добавляем под полоской HP)
         sf::Text goldText;
         goldText.setFont(font);
         goldText.setString(std::to_string(ship->getGold()) + "/" + std::to_string(ship->getMaxGold()));
-        goldText.setCharacterSize(8);
-        goldText.setFillColor(sf::Color::Yellow);
+        goldText.setCharacterSize(font_size);
         goldText.setStyle(sf::Text::Bold);
         
         sf::FloatRect goldBounds = goldText.getLocalBounds();
-        goldText.setPosition(x - goldBounds.width/2, y - hexRadius + 2);
+        float goldX = x - goldBounds.width/2;
+        float goldY = y - hexRadius + 2;
         
-        window.draw(goldText);
+        // Рисуем золото с обводкой
+        drawTextWithOutline(std::to_string(ship->getGold()) + "/" + std::to_string(ship->getMaxGold()), 
+                           goldX, goldY, sf::Color::Yellow, 8);
     }
 }
 
-void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float x, float y, float hexRadius, sf::Font& font) {
+void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float x, float y, float hexRadius, sf::Font& font, int font_size) {
     if (font.getInfo().family == "") return;
     
     sf::Text resourceText;
     resourceText.setFont(font);
-    resourceText.setCharacterSize(10);
+    resourceText.setCharacterSize(font_size);
     resourceText.setFillColor(sf::Color::Yellow);
     resourceText.setStyle(sf::Text::Bold);
     
@@ -133,17 +161,18 @@ void normlaizeSprite(sf::Sprite&sprite, const double hexRadius, double x_pos,dou
 int main() {
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    const int mapWidth = 25;
-    const int mapHeight = 15;
-    const double multipl = 0.1;         // опытным путем, можно и захардкодить
-    const double persistance = 0.5;     // опытным путем, можно и захардкодить
-    const int seed = 1, octaves = 2;
+    const int mapWidth = 25; // 25
+    const int mapHeight = 15; // 15
+    const double multipl = 0.1;         // 0.1 опытным путем, можно и захардкодить
+    const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить
+    const int seed = 1, octaves = 2;   // 1, 2
     const bool random_map = false; // сид на рандом
     const bool unknown_map = false; // отрисовка карты
-    const double hexRadius = 30.0;  // размер карты
-    const double deepWater_delim = 0.2;
-    const double water_delim = 0.9;
-    const double land_delim = 0.9;
+    const double hexRadius = 38.0;  // размер карты
+    const double deepWater_delim = 0.2;  // 0.2
+    const double water_delim = 0.65; // 0.65
+    const double land_delim = 0.9; // 0.9
+    int font_size = 12;
 
     sf::Font font;
     // Загрузка шрифта
@@ -431,6 +460,7 @@ int main() {
                 hexShape.setFillColor(getColorByScheme(hex.getNoise(), colScheme, deepWater, water, land));
 
                 //рисуем только те объкты которые видим
+                // все что дальше с else if то отрисовывается только тогда когда нет на нем корабля
                 if (hex.hasShip()) {
                     switch (hex.getShip()->getOwner()) {
                         case gl::Owner::PIRATE:
@@ -447,26 +477,31 @@ int main() {
                             break;
                         case gl::Owner::FRIENDLY:
                             hexShape.setOutlineColor(MAP_COLORS[6]);
+                            hexShape.setOutlineColor(sf::Color::White);
                             break;
                     }
-                } else if (hex.hasGold()) {
-                    goldSprite.setTexture(gold_texture);
-                    seenGold = true;
                 } else if (hex.hasTreasure()) {
                     goldSprite.setTexture(treasure_texture);
+                } else if (hex.hasGold()) {
+                    goldSprite.setTexture(gold_texture);
+                }
+
+                // для отрисовки только количества монет если на клетке еще кто-то
+                if (hex.hasGold()) {
+                    seenGold = true;
                 }
                 normlaizeSprite(goldSprite, hexRadius, x_pos, y_pos);
                 normlaizeSprite(shipSprite, hexRadius, x_pos, y_pos);
             }
 
             // my click
-            if (selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
+            if (!selectedShip && selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
                 hexShape.setOutlineColor(MAP_COLORS[2]);
                 hexShape.setOutlineThickness(1);
             }
             window.draw(hexShape);
             window.draw(goldSprite);
-            if (seenGold) drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, font);
+            if (seenGold) drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, font, font_size);
             window.draw(shipSprite);
         }
         if (selectedShip) {
@@ -479,8 +514,8 @@ int main() {
                     double y_pos = reachableHex->r * hexRadius * sqrt(3) + (reachableHex->q % 2) * hexRadius * sqrt(3) / 2.0;
 
                     sf::ConvexShape reachableShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
-                    reachableShape.setFillColor(sf::Color(100, 255, 100, 20)); // Полупрозрачный зеленый
-                    reachableShape.setOutlineColor(sf::Color::Yellow);
+                    reachableShape.setFillColor(sf::Color(100, 255, 100, 40)); // Полупрозрачный зеленый
+                    reachableShape.setOutlineColor(sf::Color(112, 129, 88, 255));
                     reachableShape.setOutlineThickness(1);
                     window.draw(reachableShape);
                 }
@@ -492,7 +527,7 @@ int main() {
             if (hex.hasShip() && std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end() && colScheme == COLORS) {
                 double x_pos = hex.q * hexRadius * 1.5;
                 double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
-                drawShipBar(window, hex.getShip(), x_pos + 50, y_pos + 50, hexRadius, font);
+                drawShipBar(window, hex.getShip(), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
             }
         }
 
