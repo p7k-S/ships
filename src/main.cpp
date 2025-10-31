@@ -168,11 +168,11 @@ int main() {
     const int seed = 1, octaves = 2;   // 1, 2
     const bool random_map = false; // сид на рандом
     const bool unknown_map = false; // отрисовка карты
-    const double hexRadius = 38.0;  // размер карты
+    const double hexRadius = 30.0;  // размер карты
     const double deepWater_delim = 0.2;  // 0.2
     const double water_delim = 0.65; // 0.65
     const double land_delim = 0.9; // 0.9
-    int font_size = 12;
+    int font_size = 10;
 
     sf::Font font;
     // Загрузка шрифта
@@ -332,6 +332,7 @@ int main() {
 
             if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R) {
                 colScheme = (colScheme == COLORS) ? INVERT : COLORS;
+                colSchemeInactive = (colSchemeInactive == DARK_COLORS) ? INVERT : DARK_COLORS;
             }
 
             // if (event.type == sf::Event::MouseWheelScrolled) {
@@ -450,8 +451,8 @@ int main() {
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             sf::ConvexShape hexShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
 
-            hexShape.setFillColor(getColorByScheme(hex.getNoise(), INVERT, deepWater, water, land));
-            hexShape.setOutlineColor(MAP_COLORS[1]);
+            hexShape.setFillColor(getColorByScheme(hex.getNoise(), colSchemeInactive, deepWater, water, land));
+            hexShape.setOutlineColor(MAP_COLORS["dark_gray"]);
             hexShape.setOutlineThickness(1);
 
             sf::Sprite goldSprite, shipSprite;
@@ -469,16 +470,31 @@ int main() {
                             break;
                         case gl::Owner::ENEMY:
                             shipSprite.setTexture(enemy_ship_texture);
-                            hexShape.setOutlineColor(MAP_COLORS[3]);
+                            hexShape.setOutlineColor(MAP_COLORS["burgundy"]);
                             break;
                         case gl::Owner::PLAYER:
                             shipSprite.setTexture(player_ship_texture);
                             hexShape.setOutlineColor(sf::Color::Green);
                             break;
                         case gl::Owner::FRIENDLY:
-                            hexShape.setOutlineColor(MAP_COLORS[6]);
                             hexShape.setOutlineColor(sf::Color::White);
                             break;
+                    }
+                    if (colScheme == INVERT) {
+                        switch (hex.getShip()->getOwner()) {
+                            case gl::Owner::PIRATE:
+                                hexShape.setFillColor(MAP_COLORS["very_dark_gray"]);
+                                break;
+                            case gl::Owner::ENEMY:
+                                hexShape.setFillColor(MAP_COLORS["burgundy"]);
+                                break;
+                            case gl::Owner::PLAYER:
+                                hexShape.setFillColor(MAP_COLORS["dark_green"]);
+                                break;
+                            case gl::Owner::FRIENDLY:
+                                hexShape.setFillColor(sf::Color::White);
+                                break;
+                        }
                     }
                 } else if (hex.hasTreasure()) {
                     goldSprite.setTexture(treasure_texture);
@@ -496,7 +512,7 @@ int main() {
 
             // my click
             if (!selectedShip && selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
-                hexShape.setOutlineColor(MAP_COLORS[2]);
+                hexShape.setOutlineColor(MAP_COLORS["deep_yellow"]);
                 hexShape.setOutlineThickness(1);
             }
             window.draw(hexShape);
@@ -504,6 +520,7 @@ int main() {
             if (seenGold) drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, font, font_size);
             window.draw(shipSprite);
         }
+
         if (selectedShip) {
             gl::Hex* selectedHex = selectedShip->getCell();
             if (selectedHex) {
@@ -524,10 +541,13 @@ int main() {
 
         for (const auto& hexp : seenCells) {
             const auto& hex = *hexp;
-            if (hex.hasShip() && std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end() && colScheme == COLORS) {
+            if (hex.hasShip() && std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end()) {
                 double x_pos = hex.q * hexRadius * 1.5;
                 double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
-                drawShipBar(window, hex.getShip(), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+                if (colScheme == COLORS) {
+                    drawShipBar(window, hex.getShip(), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+                } else if (colScheme == INVERT) {
+                }
             }
         }
 
