@@ -142,7 +142,7 @@ int main() {
     const bool unknown_map = false; // отрисовка карты
     const double hexRadius = 30.0;  // размер карты
     const double deepWater_delim = 0.2;
-    const double water_delim = 0.65;
+    const double water_delim = 0.9;
     const double land_delim = 0.9;
 
     sf::Font font;

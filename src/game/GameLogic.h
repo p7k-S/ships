@@ -44,14 +44,13 @@ namespace GameLogic {
         DEVILEYE
     };
 
-    // Должны быть определены где-то в вашем коде:
-const std::vector<std::pair<int, int>> DIRECTIONS_EVEN = {
-    {1, 0}, {1, -1}, {0, -1}, 
-    {-1, -1}, {-1, 0}, {0, 1}
-};
+    const std::vector<std::pair<int, int>> DIRECTIONS_EVEN = {
+        {1, 0}, {1, -1}, {0, -1}, 
+        {-1, -1}, {-1, 0}, {0, 1}
+    };
 
-const std::vector<std::pair<int, int>> DIRECTIONS_ODD = {
-    {1, 1}, {1, 0}, {0, -1}, 
-    {-1, 0}, {-1, 1}, {0, 1}
-};
+    const std::vector<std::pair<int, int>> DIRECTIONS_ODD = {
+        {1, 1}, {1, 0}, {0, -1}, 
+        {-1, 0}, {-1, 1}, {0, 1}
+    };
 }
