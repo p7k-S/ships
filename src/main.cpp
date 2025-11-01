@@ -161,7 +161,7 @@ void normlaizeSprite(sf::Sprite&sprite, const double hexRadius, double x_pos,dou
 int main() {
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    const int mapWidth = 25; // 25
+    const int mapWidth = 24; // 24
     const int mapHeight = 15; // 15
     const double multipl = 0.1;         // 0.1 опытным путем, можно и захардкодить
     const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить
@@ -317,8 +317,8 @@ int main() {
 
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
-    // sf::RenderWindow window(sf::VideoMode(800, 600), "Hex Map", sf::Style::Default, settings);
-    sf::RenderWindow window(sf::VideoMode(800, 600), "Hex Map", sf::Style::Default);
+    sf::RenderWindow window(sf::VideoMode(800, 600), "Hex Map", sf::Style::Default, settings);
+    // sf::RenderWindow window(sf::VideoMode(800, 600), "Hex Map", sf::Style::Default);
     sf::View view = window.getDefaultView(); // Get the default view
 
     gl::Hex* selectedHex = nullptr;
@@ -452,15 +452,19 @@ int main() {
             sf::ConvexShape hexShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
 
             hexShape.setFillColor(getColorByScheme(hex.getNoise(), colSchemeInactive, deepWater, water, land));
-            hexShape.setOutlineColor(MAP_COLORS["dark_gray"]);
+            hexShape.setOutlineColor(MAP_COLORS["very_dark_gray"]);
             hexShape.setOutlineThickness(1);
+            if (colSchemeInactive == INVERT) {
+                hexShape.setOutlineColor(MAP_COLORS["dark_gray"]);
+            }
 
             sf::Sprite goldSprite, shipSprite;
             bool seenGold = false;
             if (std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end()) {
                 hexShape.setFillColor(getColorByScheme(hex.getNoise(), colScheme, deepWater, water, land));
+                hexShape.setOutlineColor(MAP_COLORS["dark_gray"]);
 
-                //рисуем только те объкты которые видим
+                // рисуем только те объкты которые видим
                 // все что дальше с else if то отрисовывается только тогда когда нет на нем корабля
                 if (hex.hasShip()) {
                     switch (hex.getShip()->getOwner()) {
@@ -531,7 +535,7 @@ int main() {
                     double y_pos = reachableHex->r * hexRadius * sqrt(3) + (reachableHex->q % 2) * hexRadius * sqrt(3) / 2.0;
 
                     sf::ConvexShape reachableShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
-                    reachableShape.setFillColor(sf::Color(100, 255, 100, 40)); // Полупрозрачный зеленый
+                    reachableShape.setFillColor(sf::Color(100, 255, 100, 80)); // Полупрозрачный зеленый
                     reachableShape.setOutlineColor(sf::Color(112, 129, 88, 255));
                     reachableShape.setOutlineThickness(1);
                     window.draw(reachableShape);

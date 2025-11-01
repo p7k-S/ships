@@ -39,10 +39,10 @@ inline sf::Color getColorByThreshold(double value, double deepWater, double wate
     return sf::Color(0x2D6441FF);                        // forest
 }
 inline sf::Color getColorByThresholdDark(double value, double deepWater, double water, double land) {
-    if (value <= deepWater) return sf::Color(0x012378FF); // темный deepWater
-    if (value <= water) return sf::Color(0x153D8AFF);    // темный water
-    if (value <= land) return sf::Color(0x2D5A3AFF);     // темный land
-    return sf::Color(0x1E4A2FFF);                        // темный forest
+    if (value <= deepWater) return sf::Color(0x091A3CFF); // темный deepWater + серый
+    if (value <= water) return sf::Color(0x1A2645FF);     // темный water + серый
+    if (value <= land) return sf::Color(0x2E3F2DFF);      // темный land + серый
+    return sf::Color(0x273529FF);                         // темный forest + серый
 }
 
 inline sf::Color getGrayscaleColor(double value) {
