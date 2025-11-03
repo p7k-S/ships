@@ -15,7 +15,7 @@ namespace GameLogic {
     public:
         CellType getType() const override { return CellType::DEEPWATER; }
         bool isPassable() const override { return true; }
-        int getMovementCost() const override { return 1; }
+        int getMovementCost() const override { return 2; }
     };
 
     class WATER : public HexCellType {
@@ -36,6 +36,6 @@ namespace GameLogic {
     public:
         CellType getType() const override { return CellType::FOREST; }
         bool isPassable() const override { return true; }
-        int getMovementCost() const override { return 1; }
+        int getMovementCost() const override { return 2; }
     };
 }

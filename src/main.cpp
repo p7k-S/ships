@@ -7,7 +7,7 @@
 #include <iostream>
 #include "game/map.h"
 #include "game/ship.h"
-#include "game/detect_islands.h"
+// #include "game/detect_islands.h"
 // #include "game/islands_utils.h"
 #include "render/Colors.hpp"
 // #include "render/map/CubePerlin.h"
@@ -161,7 +161,7 @@ void normlaizeSprite(sf::Sprite&sprite, const double hexRadius, double x_pos,dou
 int main() {
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    const int mapWidth = 24; // 24
+    const int mapWidth = 24; // 24 для норм цикла гексокарты должно быть четным
     const int mapHeight = 15; // 15
     const double multipl = 0.1;         // 0.1 опытным путем, можно и захардкодить
     const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить
@@ -176,7 +176,7 @@ int main() {
 
     sf::Font font;
     // Загрузка шрифта
-    if (!font.loadFromFile("/home/zane/.fonts/JetBrains/JetBrainsMonoNerdFont-Light.ttf")) {
+    if (!font.loadFromFile("/home/zane/.fonts/airborne.ttf")) {
         std::cerr << "Не удалось загрузить шрифт!" << std::endl;
         // Обработка ошибки
     }
@@ -222,16 +222,9 @@ int main() {
         hex.setCellType(type);
     }
 
-    std::vector<std::vector<gl::Hex*>> islands = gl::findIslands(hexMap, mapWidth, mapHeight);
-    // после надо проставить островам овнеров
-            // hex.setOwner(gl::Owner::PLAYER);
-
-
-    // if (size(islands) < 3) {
-    //     return 0;
-    // }
-    std::vector player_island = islands.front();
-    std::vector enemy_island = islands.back();
+    // std::vector<std::vector<gl::Hex*>> islands = gl::findIslands(hexMap, mapWidth, mapHeight);
+    // std::vector player_island = islands.front();
+    // std::vector enemy_island = islands.back();
     // std::uniform_int_distribution<> dist(0, player_island.size() - 1);
     // gl::Hex* cur_pos = player_island[dist(gen)];
     // gl::Ship newShip(gl::Owner::PLAYER, cur_pos);
