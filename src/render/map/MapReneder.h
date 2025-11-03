@@ -1,8 +1,9 @@
 #pragma once
 #include <SFML/Graphics.hpp>
+#include <charconv>
 #include <cmath>
 #include "../../game/map.h"
-#include "CubePerlin.h"
+#include "../../game/CubePerlin.h"
 
 // --- Функция создания гекса для SFML ---
 inline sf::ConvexShape createHex(double x, double y, double radius) {
@@ -17,25 +18,22 @@ inline sf::ConvexShape createHex(double x, double y, double radius) {
     return hex;
 }
 
-// --- Перевод гекса в кубические координаты ---
-inline void axialToCube(int q, int r, int& x, int& y, int& z) {
-    x = q;
-    z = r;
-    y = -x - z;
-}
-
-inline std::vector<GameLogic::Hex> createMap(PerlinNoise perlin, int mapWidth, int mapHeight, int octaves) {
+inline std::vector<GameLogic::Hex> createMap(const PerlinNoise& perlin, int mapWidth, int mapHeight, int octaves, const double scale)
+{
     std::vector<GameLogic::Hex> hexMap;
+    hexMap.reserve(mapWidth * mapHeight);
 
-    for (int cx, cy, cz, r = 0; r < mapHeight; r++) {
-        for (int q = 0; q < mapWidth; q++) {
-            axialToCube(q, r, cx, cy, cz);
-            double value = perlin.octaveNoise(cx * 0.1, cy * 0.1, cz * 0.1, octaves, 0.5);
-            hexMap.push_back(GameLogic::Hex(q, r, value));
+    for (int r = 0; r < mapHeight; ++r) {
+        for (int q = 0; q < mapWidth; ++q) {
+            double val = perlin.octaveNoise(q * scale, r * scale, octaves, 0.5);
+            // if (q == mapWidth - 1 || r == mapHeight - 1) val = 0.5;
+            hexMap.emplace_back(GameLogic::Hex(q, r, val));
         }
     }
+
     return hexMap;
 }
+
 
 inline std::vector<double> getNoises(std::vector<GameLogic::Hex> hexMap){
     std::vector<double> noises;

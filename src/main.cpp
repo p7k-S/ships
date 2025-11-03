@@ -7,6 +7,7 @@
 #include <iostream>
 #include "game/map.h"
 #include "game/ship.h"
+#include "game/constants.h"
 // #include "game/detect_islands.h"
 // #include "game/islands_utils.h"
 #include "render/Colors.hpp"
@@ -163,26 +164,23 @@ int main() {
     static std::mt19937 gen(rd());
     const int mapWidth = 24; // 24 для норм цикла гексокарты должно быть четным
     const int mapHeight = 15; // 15
-    const double multipl = 0.1;         // 0.1 опытным путем, можно и захардкодить
-    const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить
-    const int seed = 1, octaves = 2;   // 1, 2
+    const double scale = 0.1;         // 0.1 опытным путем, можно и захардкодить (чем больше тем быстрее меняется шум между клетками), условный масштаб карты
+    const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить, сила каждой след октавы
+    const int seed = 0, octaves = 1;   // 1, 2
     const bool random_map = false; // сид на рандом
     const bool unknown_map = false; // отрисовка карты
-    const double hexRadius = 30.0;  // размер карты
-    const double deepWater_delim = 0.2;  // 0.2
-    const double water_delim = 0.65; // 0.65
-    const double land_delim = 0.9; // 0.9
+    const double hexRadius = 30.0;  // масштаб карты
     int font_size = 10;
 
     sf::Font font;
     // Загрузка шрифта
-    if (!font.loadFromFile("/home/zane/.fonts/airborne.ttf")) {
+    if (!font.loadFromFile("/home/zane/Study/mirea/sem3/kursach/src/textures/airborne.ttf")) {
         std::cerr << "Не удалось загрузить шрифт!" << std::endl;
         // Обработка ошибки
     }
 
     PerlinNoise perlin(seed);
-    std::vector<gl::Hex> hexMap = createMap(perlin, mapWidth, mapHeight, octaves);
+    std::vector<gl::Hex> hexMap = createMap(perlin, mapWidth, mapHeight, octaves, scale);
 
     double deepWater;
     double water;
@@ -194,6 +192,25 @@ int main() {
     deepWater = sortedValues[noiseValues.size() * deepWater_delim];
     water = sortedValues[noiseValues.size() * water_delim];
     land = sortedValues[noiseValues.size() * land_delim];
+
+    double min = *std::min_element(noiseValues.begin(), noiseValues.end());
+    double max = *std::max_element(noiseValues.begin(), noiseValues.end());
+    double mean = std::accumulate(noiseValues.begin(), noiseValues.end(), 0.0) / noiseValues.size();
+    
+    std::cout << "Noise range: " << min << " - " << max << std::endl;
+    std::cout << "Mean: " << mean << std::endl;
+    
+    // Гистограмма
+    std::vector<int> histogram(10, 0);
+    for (double val : noiseValues) {
+        int bin = static_cast<int>((val - min) / (max - min) * 10);
+        if (bin >= 0 && bin < 10) histogram[bin]++;
+    }
+    
+    for (int i = 0; i < 10; i++) {
+        std::cout << "Bin " << i << ": " << histogram[i] << " values" << std::endl;
+    }
+
     }
 
     std::vector<gl::Hex*> deepWaterHexes;

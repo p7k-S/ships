@@ -21,7 +21,7 @@ namespace GameLogic {
             Ship(Owner owner, Hex* currCell):
                 owner(owner),
                 curCell(currCell),
-                view(50),    // 4  2
+                view(100),    // 4  2
                 move(3),    // 2  1
                 damage(50), // 30 20
                 health(100),
