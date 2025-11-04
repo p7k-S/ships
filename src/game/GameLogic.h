@@ -44,6 +44,12 @@ namespace GameLogic {
         DEVILEYE
     };
 
+    enum class RangeMode {
+        MOVE,
+        VIEW,
+        DAMAGE
+    };
+
     const std::vector<std::pair<int, int>> DIRECTIONS_EVEN = {
         {1, 0}, {1, -1}, {0, -1}, 
         {-1, -1}, {-1, 0}, {0, 1}

@@ -2,6 +2,7 @@
 #include "GameLogic.h"
 #include "map.h"
 #include <cstdint>
+#include <iostream>
 
 namespace GameLogic {
     class Ship {
@@ -10,6 +11,7 @@ namespace GameLogic {
             uint8_t view;         // range(радиус) = 5
             uint8_t move;         // range(радиус) = 3
             uint16_t damage;      // 35
+            uint16_t damageRange; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем veiw
             uint16_t health;      // 100
             uint16_t maxHealth;
             uint16_t gold;
@@ -21,9 +23,10 @@ namespace GameLogic {
             Ship(Owner owner, Hex* currCell):
                 owner(owner),
                 curCell(currCell),
-                view(100),    // 4  2
+                view(4),    // 4  2
                 move(3),    // 2  1
                 damage(50), // 30 20
+                damageRange(2),
                 health(100),
                 maxHealth(100),
                 gold(100),
@@ -52,6 +55,9 @@ namespace GameLogic {
                 }
             }
             // Дамаг
+            
+            uint16_t getDamageRange() const { return damageRange; }
+            void setDamageRange(uint16_t range) { damageRange = range; }
             void takeDamage(uint16_t dmg) {
                 if (dmg > health) {
                     health = 0;
@@ -59,8 +65,11 @@ namespace GameLogic {
                     health -= dmg; 
                 }
             }
-            virtual void giveDamage(Hex* cell) {
-                if (areNeighbors(curCell, cell) && cell->hasShip()) {
+            virtual void giveDamage(Hex* cell, std::vector<Hex>& hexMap) {
+                if (cell == curCell) return;
+                std::vector<Hex*> reachable = cellsInRange(*curCell, hexMap, curCell->getShip()->getDamageRange(), RangeMode::DAMAGE); // false=не радиус обзора
+
+                if (std::find(reachable.begin(), reachable.end(), cell) != reachable.end()) {
                     Ship* enemy = cell->getShip();
                     enemy->takeDamage(damage);
                     if (enemy->isDestroyed()) {
@@ -72,6 +81,7 @@ namespace GameLogic {
                     }
                 }
             }
+
             bool isEnemy() const { return owner == Owner::ENEMY || owner == Owner::PIRATE; }
             bool isDestroyed() const { return health == 0; }
             void Destroy() {
@@ -131,7 +141,7 @@ namespace GameLogic {
                 if (targetHex == curCell) return false;
                 if (targetHex->isLand() || targetHex->hasShip()) return false;
 
-                std::vector<Hex*> reachable = getCellsInRadius(*curCell, hexMap, curCell->getShip()->getMoveRange(), false);
+                std::vector<Hex*> reachable = cellsInRange(*curCell, hexMap, curCell->getShip()->getMoveRange(), RangeMode::MOVE);
                 for (Hex* cell : reachable)
                     if (cell == targetHex)
                         return true;
@@ -146,7 +156,7 @@ namespace GameLogic {
                 targetHex->setShip(this);
             }
 
-            std::vector<Hex*> getCellsInRadius(Hex& start, std::vector<Hex>& hexMap, const uint8_t range, const bool isView) const;
+            std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode) const; // ship.cpp
 
             uint8_t getMoveRange() const { return move; }
             void setMoveRange(uint8_t range) { move = range; }

@@ -4,7 +4,7 @@
 #include "../game/map.h"
 namespace gl = GameLogic;
 
-bool pointInHex(float px, float py, float hx, float hy, float radius) {
+inline bool pointInHex(float px, float py, float hx, float hy, float radius) {
     float dx = px - hx;
     float dy = py - hy;
     float distance = sqrt(dx*dx + dy*dy);

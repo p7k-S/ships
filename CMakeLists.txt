@@ -29,8 +29,10 @@ set(SOURCE_FILES
     src/game/ship.h
     src/game/ship.cpp
     src/render/Colors.hpp
-    src/render/map/CubePerlin.h
+    src/game/CubePerlin.h
     src/render/map/MapReneder.h
+    src/game/detect_area.h
+    src/render/draw_area.h
 )
 
 # Укажите исполняемый файл, который будет скомпилирован

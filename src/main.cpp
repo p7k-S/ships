@@ -5,6 +5,7 @@
 #include <memory>
 #include <random>
 #include <iostream>
+#include "game/GameLogic.h"
 #include "game/map.h"
 #include "game/ship.h"
 #include "game/constants.h"
@@ -13,6 +14,9 @@
 #include "render/Colors.hpp"
 // #include "render/map/CubePerlin.h"
 #include "render/map/MapReneder.h"
+// #include "game/detect_area.h"
+#include "render/draw_area.h"
+
 
 namespace gl = GameLogic;
 
@@ -138,8 +142,8 @@ void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float x, flo
     window.draw(resourceText);
 }
 
-void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Ship* ship, std::vector<gl::Hex>& hexMap, bool isView){
-    std::vector<gl::Hex*> newCells = ship->getCellsInRadius(*ship->getCell(), hexMap, ship->getView(), isView);
+void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Ship* ship, std::vector<gl::Hex>& hexMap, gl::RangeMode mode){
+    std::vector<gl::Hex*> newCells = ship->cellsInRange(*ship->getCell(), hexMap, ship->getView(), mode);
     std::unordered_set<gl::Hex*> uniqueSet(seenCells.begin(), seenCells.end());
     seenCells.reserve(seenCells.size() + newCells.size());
 
@@ -149,6 +153,7 @@ void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Ship* ship, std::vecto
         }
     }
 }
+
 void normlaizeSprite(sf::Sprite&sprite, const double hexRadius, double x_pos,double y_pos){
     sf::FloatRect spriteBounds = sprite.getLocalBounds();
     float scale = (hexRadius * 1.0f) / spriteBounds.width; // Меньше чем клетка
@@ -166,17 +171,16 @@ int main() {
     const int mapHeight = 15; // 15
     const double scale = 0.1;         // 0.1 опытным путем, можно и захардкодить (чем больше тем быстрее меняется шум между клетками), условный масштаб карты
     const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить, сила каждой след октавы
-    const int seed = 0, octaves = 1;   // 1, 2
+    const int seed = 0, octaves = 5;   // 1, 2
     const bool random_map = false; // сид на рандом
     const bool unknown_map = false; // отрисовка карты
     const double hexRadius = 30.0;  // масштаб карты
     int font_size = 10;
 
     sf::Font font;
-    // Загрузка шрифта
-    if (!font.loadFromFile("/home/zane/Study/mirea/sem3/kursach/src/textures/airborne.ttf")) {
-        std::cerr << "Не удалось загрузить шрифт!" << std::endl;
-        // Обработка ошибки
+    std::string font_path = "/home/zane/Study/mirea/sem3/kursach/src/textures/airborne.ttf";
+    if (!font.loadFromFile(font_path)) {
+        std::cerr << "Не удалось загрузить шрифт из: " << font_path << std::endl;
     }
 
     PerlinNoise perlin(seed);
@@ -274,7 +278,7 @@ int main() {
 
     }
     std::vector<gl::Hex*> seenCells;
-    addViewedCells(seenCells, &*ships[0], hexMap, true);
+    addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
 
     std::uniform_int_distribution<> goldDist(10, 100);
     std::uniform_real_distribution<> chanceDist(0.0, 1.0);
@@ -384,14 +388,12 @@ int main() {
                             if (selectedShip && selectedShip->canMoveTo(&hex, hexMap)) {
                                 selectedShip->moveTo(&hex, hexMap);
                                 selectedShip->takeGoldFromCell(&hex); // если хочешь собрать то будь добр остановитсься на ней
-                                addViewedCells(seenCells, &*ships[0], hexMap, true);
+                                addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
                                 std::cout << "Корабль перемещен на (" << hex.q << ", " << hex.r << ")" << std::endl;
                             }
-                            // --- Атака вражеского корабля на соседней клетке ---
-                            else if (selectedShip && hex.getShip() && 
-                                    hex.getShip()->getOwner() != gl::Owner::FRIENDLY &&
-                                    gl::Ship::areNeighbors(selectedShip->getCell(), &hex)) {
-                                selectedShip->giveDamage(&hex);
+                            // --- Атака вражеского корабля ---
+                            else if (selectedShip && hex.getShip() && hex.getShip()->getOwner() != gl::Owner::FRIENDLY) {
+                                selectedShip->giveDamage(&hex, hexMap);
                                 std::cout << "Атакован вражеский корабль на (" << hex.q << ", " << hex.r << ")" << 
                                     "       hp: " << hex.getShip()->getHealth() << "     my hp " << selectedShip->getHealth() << std::endl;
 
@@ -443,7 +445,7 @@ int main() {
         std::unordered_set<gl::Hex*> uniqueCells;
         for (auto& ship : ships) {
             if (ship->getOwner() == gl::Owner::PLAYER) {
-                std::vector<gl::Hex*> visibleCells = ship->getCellsInRadius(*ship->getCell(), hexMap, ship->getView(), true);
+                std::vector<gl::Hex*> visibleCells = ship->cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW);
                 for (auto* cell : visibleCells) {
                     if (uniqueCells.find(cell) == uniqueCells.end()) {
                         uniqueCells.insert(cell);
@@ -538,8 +540,8 @@ int main() {
         if (selectedShip) {
             gl::Hex* selectedHex = selectedShip->getCell();
             if (selectedHex) {
-                std::vector<gl::Hex*> reachableHexes = selectedShip->getCellsInRadius(*selectedHex, hexMap, selectedHex->getShip()->getMoveRange(), false);
 
+                std::vector<gl::Hex*> reachableHexes = selectedShip->cellsInRange(*selectedHex, hexMap, selectedHex->getShip()->getMoveRange(), gl::RangeMode::MOVE);
                 for (gl::Hex* reachableHex : reachableHexes) {
                     double x_pos = reachableHex->q * hexRadius * 1.5;
                     double y_pos = reachableHex->r * hexRadius * sqrt(3) + (reachableHex->q % 2) * hexRadius * sqrt(3) / 2.0;
@@ -548,6 +550,16 @@ int main() {
                     reachableShape.setFillColor(sf::Color(100, 255, 100, 80)); // Полупрозрачный зеленый
                     reachableShape.setOutlineColor(sf::Color(112, 129, 88, 255));
                     reachableShape.setOutlineThickness(1);
+                    window.draw(reachableShape);
+                }
+
+                std::vector<gl::Hex*> attackRangeHexes = selectedShip->cellsInRange(*selectedHex, hexMap, selectedHex->getShip()->getDamageRange(), gl::RangeMode::DAMAGE);
+                for (gl::Hex* reachableHex : attackRangeHexes) {
+                    double x_pos = reachableHex->q * hexRadius * 1.5;
+                    double y_pos = reachableHex->r * hexRadius * sqrt(3) + (reachableHex->q % 2) * hexRadius * sqrt(3) / 2.0;
+
+                    sf::ConvexShape reachableShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
+                    reachableShape.setFillColor(sf::Color(200, 40, 40, 90)); // Полупрозрачный 
                     window.draw(reachableShape);
                 }
             }
@@ -564,73 +576,6 @@ int main() {
                 }
             }
         }
-
-        //отрисовка кораблей
-        // for (const auto& ship : ships) {
-        //     // Получаем гекс, на котором находится корабль
-        //     gl::Hex* hex = ship->getCell();
-        //     if (!hex) continue; // Пропускаем если гекс не установлен
-        //
-        //     // Вычисляем позицию гекса
-        //     double x_pos = hex->q * hexRadius * 1.5;
-        //     double y_pos = hex->r * hexRadius * sqrt(3) + (hex->q % 2) * hexRadius * sqrt(3) / 2.0;
-        //     sf::ConvexShape hexShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
-        //     hexShape.setFillColor(getColorByScheme(hex->getNoise(), colScheme, deepWater, water, land));
-        //
-        //     sf::Sprite shipSprite;
-        //     switch (hex->getShip()->getOwner()) {
-        //         case gl::Owner::PIRATE:
-        //             shipSprite.setTexture(pirate_ship_texture);
-        //             hexShape.setOutlineColor(sf::Color::Black);
-        //             break;
-        //         case gl::Owner::ENEMY:
-        //             shipSprite.setTexture(enemy_ship_texture);
-        //             hexShape.setOutlineColor(MAP_COLORS[3]);
-        //             break;
-        //         case gl::Owner::PLAYER:
-        //             shipSprite.setTexture(player_ship_texture);
-        //             hexShape.setOutlineColor(sf::Color::Green);
-        //             break;
-        //         case gl::Owner::FRIENDLY:
-        //             hexShape.setOutlineColor(MAP_COLORS[6]);
-        //             break;
-        //     }
-        //     hexShape.setOutlineThickness(1);
-        //     window.draw(hexShape);
-        //
-        //     // Создаем спрайт корабля (не клетки!)
-        //
-        //     // Настройка размера
-        //     sf::FloatRect spriteBounds = shipSprite.getLocalBounds();
-        //     float scale = (hexRadius * 1.0f) / spriteBounds.width; // Меньше чем клетка
-        //
-        //     shipSprite.setScale(scale, scale);
-        //
-        //     // Позиционирование по центру шестиугольника
-        //     shipSprite.setPosition(
-        //             x_pos + 50 - spriteBounds.width * scale / 2,
-        //             y_pos + 50 - spriteBounds.height * scale / 2
-        //             );
-        //
-        //
-        //     window.draw(shipSprite);
-        // }
-            // if (hex.hasGold()) {
-            //     sf::Sprite goldSprite;
-            //     goldSprite.setTexture(gold_texture);
-            //     sf::FloatRect spriteBounds = goldSprite.getLocalBounds();
-            //     float scale = (hexRadius * 1.0f) / spriteBounds.width; // Меньше чем клетка
-            //
-            //     goldSprite.setScale(scale, scale);
-            //
-            //     // Позиционирование по центру шестиугольника
-            //     goldSprite.setPosition(
-            //             x_pos + 50 - spriteBounds.width * scale / 2,
-            //             y_pos + 50 - spriteBounds.height * scale / 2
-            //             );
-            //     window.draw(goldSprite);
-            // }
-
         window.display();
     }
 
