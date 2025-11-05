@@ -23,9 +23,9 @@ namespace GameLogic {
 
     // Типы клеток
     enum class CellType {
-        DEEPWATER,      // Открытое море
+        DEEPWATER,
         WATER,
-        LAND,      // Остров
+        LAND,
         FOREST
     };
 

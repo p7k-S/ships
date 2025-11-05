@@ -24,15 +24,17 @@ include_directories(
 # Укажите исходные файлы
 set(SOURCE_FILES
     src/main.cpp
-    src/game/GameLogic.h
-    src/game/map.h
-    src/game/ship.h
-    src/game/ship.cpp
-    src/render/Colors.hpp
-    src/game/CubePerlin.h
-    src/render/map/MapReneder.h
-    src/game/detect_area.h
-    src/render/draw_area.h
+    src/game/troops/Ship.cpp
+    src/game/map/MapReneder.cpp
+    # src/game/GameLogic.h
+    # src/game/map.h
+    # src/game/ship.h
+    # src/game/ship.cpp
+    # src/render/Colors.hpp
+    # src/game/CubePerlin.h
+    # src/render/map/MapReneder.h
+    # src/game/detect_area.h
+    # src/render/draw_area.h
 )
 
 # Укажите исполняемый файл, который будет скомпилирован

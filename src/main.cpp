@@ -6,185 +6,36 @@
 #include <random>
 #include <iostream>
 #include "game/GameLogic.h"
-#include "game/map.h"
-#include "game/ship.h"
+
+#include "game/map/Cell.h"
+#include "game/map/PerlinNoise.h"
+#include "game/map/MapReneder.h"
+#include "game/troops/Ship.h"
+
 #include "game/constants.h"
-// #include "game/detect_islands.h"
-// #include "game/islands_utils.h"
 #include "render/Colors.hpp"
-// #include "render/map/CubePerlin.h"
-#include "render/map/MapReneder.h"
-// #include "game/detect_area.h"
-#include "render/draw_area.h"
+#include "render/info_bars.h"
+#include "render/sprites.h"
+
+#include "render/ui/startUI.h"
+#include "game/constants.h"
 
 
 namespace gl = GameLogic;
 
-void drawShipBar(sf::RenderWindow& window, gl::Ship* ship, float x, float y, float hexRadius, sf::Font& font, int font_size) {
-    if (!ship) return;
-    
-    float healthPercent = static_cast<float>(ship->getHealth()) / ship->getMaxHealth();
-    float barWidth = hexRadius * 1.2f;
-    float barHeight = 4.0f;
-    
-    // Полоска HP
-    sf::RectangleShape background(sf::Vector2f(barWidth, barHeight));
-    background.setPosition(x - barWidth/2, y - hexRadius - 8);
-    background.setFillColor(sf::Color::Black);
-    window.draw(background);
-    
-    sf::RectangleShape healthBar(sf::Vector2f(barWidth * healthPercent, barHeight));
-    healthBar.setPosition(x - barWidth/2, y - hexRadius - 8);
-    healthBar.setFillColor(healthPercent > 0.5f ? sf::Color::Green : sf::Color::Red);
-    window.draw(healthBar);
-    
-    if (font.getInfo().family != "") {
-        // Функция для рисования текста с обводкой
-        auto drawTextWithOutline = [&](const std::string& str, float posX, float posY, sf::Color fillColor, int charSize) {
-            // Основной текст
-            sf::Text text;
-            text.setFont(font);
-            text.setString(str);
-            text.setCharacterSize(charSize);
-            text.setFillColor(fillColor);
-            text.setStyle(sf::Text::Bold);
-            text.setPosition(posX, posY);
-            
-            // Черная обводка (рисуем смещенные копии)
-            sf::Text outline = text;
-            outline.setFillColor(sf::Color::Black);
-            
-            // Рисуем обводку со смещениями
-            outline.setPosition(posX - 1, posY - 1); window.draw(outline);
-            outline.setPosition(posX + 1, posY - 1); window.draw(outline);
-            outline.setPosition(posX - 1, posY + 1); window.draw(outline);
-            outline.setPosition(posX + 1, posY + 1); window.draw(outline);
-            
-            // Рисуем основной текст поверх
-            window.draw(text);
-        };
-        
-        // HP зеленый
-        sf::Text hpText;
-        hpText.setFont(font);
-        hpText.setString(std::to_string(ship->getHealth()));
-        hpText.setCharacterSize(font_size);
-        hpText.setStyle(sf::Text::Bold);
-        
-        // Урон красный
-        sf::Text damageText;
-        damageText.setFont(font);
-        damageText.setString(std::to_string(static_cast<int>(ship->getDamage())));
-        damageText.setCharacterSize(font_size);
-        damageText.setStyle(sf::Text::Bold);
-        
-        // Позиционируем рядом
-        sf::FloatRect hpBounds = hpText.getLocalBounds();
-        sf::FloatRect damageBounds = damageText.getLocalBounds();
-        
-        float totalWidth = hpBounds.width + damageBounds.width + 10; // +10 для отступа
-        
-        float hpX = x - totalWidth/2;
-        float damageX = x - totalWidth/2 + hpBounds.width + 10;
-        float textY = y - hexRadius - 20;
-        
-        // Рисуем с обводкой
-        drawTextWithOutline(std::to_string(ship->getHealth()), hpX, textY, sf::Color::Green, 10);
-        drawTextWithOutline(std::to_string(static_cast<int>(ship->getDamage())), damageX, textY, sf::Color::Red, 10);
-        
-        // Золото желтый (добавляем под полоской HP)
-        sf::Text goldText;
-        goldText.setFont(font);
-        goldText.setString(std::to_string(ship->getGold()) + "/" + std::to_string(ship->getMaxGold()));
-        goldText.setCharacterSize(font_size);
-        goldText.setStyle(sf::Text::Bold);
-        
-        sf::FloatRect goldBounds = goldText.getLocalBounds();
-        float goldX = x - goldBounds.width/2;
-        float goldY = y - hexRadius + 2;
-        
-        // Рисуем золото с обводкой
-        drawTextWithOutline(std::to_string(ship->getGold()) + "/" + std::to_string(ship->getMaxGold()), 
-                           goldX, goldY, sf::Color::Yellow, 8);
-    }
-}
-
-void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float x, float y, float hexRadius, sf::Font& font, int font_size) {
-    if (font.getInfo().family == "") return;
-    
-    sf::Text resourceText;
-    resourceText.setFont(font);
-    resourceText.setCharacterSize(font_size);
-    resourceText.setFillColor(sf::Color::Yellow);
-    resourceText.setStyle(sf::Text::Bold);
-    
-    std::string text;
-    if (hex.hasGold()) {
-        // text = std::to_string(hex.getGold()) + "G"; // Предполагая, что есть метод getGoldAmount()
-        text = std::to_string(hex.getGold()); // Предполагая, что есть метод getGoldAmount()
-    } 
-    // else if (hex.hasTreasure()) {
-    //     text = std::to_string(hex.getGold()) + "T"; // Предполагая, что есть метод getTreasureAmount()
-    // }
-    
-    resourceText.setString(text);
-    
-    // Центрируем текст под спрайтом золота
-    sf::FloatRect textBounds = resourceText.getLocalBounds();
-    resourceText.setPosition(x - textBounds.width/2, y + hexRadius/2);
-    
-    // Добавляем черную обводку для лучшей читаемости
-    sf::Text outlineText = resourceText;
-    outlineText.setFillColor(sf::Color::Black);
-    outlineText.setPosition(x - textBounds.width/2 + 1, y + hexRadius/2 + 1);
-    window.draw(outlineText);
-    
-    window.draw(resourceText);
-}
-
-void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Ship* ship, std::vector<gl::Hex>& hexMap, gl::RangeMode mode){
-    std::vector<gl::Hex*> newCells = ship->cellsInRange(*ship->getCell(), hexMap, ship->getView(), mode);
-    std::unordered_set<gl::Hex*> uniqueSet(seenCells.begin(), seenCells.end());
-    seenCells.reserve(seenCells.size() + newCells.size());
-
-    for (auto* cell : newCells) {
-        if (uniqueSet.insert(cell).second) {
-            seenCells.push_back(cell);
-        }
-    }
-}
-
-void normlaizeSprite(sf::Sprite&sprite, const double hexRadius, double x_pos,double y_pos){
-    sf::FloatRect spriteBounds = sprite.getLocalBounds();
-    float scale = (hexRadius * 1.0f) / spriteBounds.width; // Меньше чем клетка
-    sprite.setScale(scale, scale);
-    sprite.setPosition(
-            x_pos + 50 - spriteBounds.width * scale / 2,
-            y_pos + 50 - spriteBounds.height * scale / 2
-            );
-}
-
+// https://chat.deepseek.com/a/chat/s/abf7b889-2588-41ac-ace5-f8f42eda92f9
 int main() {
     static std::random_device rd;
     static std::mt19937 gen(rd());
-    const int mapWidth = 24; // 24 для норм цикла гексокарты должно быть четным
-    const int mapHeight = 15; // 15
-    const double scale = 0.1;         // 0.1 опытным путем, можно и захардкодить (чем больше тем быстрее меняется шум между клетками), условный масштаб карты
-    const double persistance = 0.5;     // 0.5 опытным путем, можно и захардкодить, сила каждой след октавы
-    const int seed = 0, octaves = 5;   // 1, 2
-    const bool random_map = false; // сид на рандом
-    const bool unknown_map = false; // отрисовка карты
-    const double hexRadius = 30.0;  // масштаб карты
-    int font_size = 10;
-
-    sf::Font font;
-    std::string font_path = "/home/zane/Study/mirea/sem3/kursach/src/textures/airborne.ttf";
-    if (!font.loadFromFile(font_path)) {
-        std::cerr << "Не удалось загрузить шрифт из: " << font_path << std::endl;
+    SimpleConfigUI configUI;
+    if (configUI.show()) {
     }
 
     PerlinNoise perlin(seed);
     std::vector<gl::Hex> hexMap = createMap(perlin, mapWidth, mapHeight, octaves, scale);
+
+    sf::Font font;
+    if (!font.loadFromFile(font_path)) { std::cerr << "Не удалось загрузить шрифт из: " << font_path << std::endl; }
 
     double deepWater;
     double water;
@@ -196,25 +47,6 @@ int main() {
     deepWater = sortedValues[noiseValues.size() * deepWater_delim];
     water = sortedValues[noiseValues.size() * water_delim];
     land = sortedValues[noiseValues.size() * land_delim];
-
-    double min = *std::min_element(noiseValues.begin(), noiseValues.end());
-    double max = *std::max_element(noiseValues.begin(), noiseValues.end());
-    double mean = std::accumulate(noiseValues.begin(), noiseValues.end(), 0.0) / noiseValues.size();
-    
-    std::cout << "Noise range: " << min << " - " << max << std::endl;
-    std::cout << "Mean: " << mean << std::endl;
-    
-    // Гистограмма
-    std::vector<int> histogram(10, 0);
-    for (double val : noiseValues) {
-        int bin = static_cast<int>((val - min) / (max - min) * 10);
-        if (bin >= 0 && bin < 10) histogram[bin]++;
-    }
-    
-    for (int i = 0; i < 10; i++) {
-        std::cout << "Bin " << i << ": " << histogram[i] << " values" << std::endl;
-    }
-
     }
 
     std::vector<gl::Hex*> deepWaterHexes;
@@ -332,103 +164,162 @@ int main() {
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
     sf::RenderWindow window(sf::VideoMode(800, 600), "Hex Map", sf::Style::Default, settings);
-    // sf::RenderWindow window(sf::VideoMode(800, 600), "Hex Map", sf::Style::Default);
-    sf::View view = window.getDefaultView(); // Get the default view
+
+    sf::View view = window.getDefaultView();
+    sf::View defaultView = view;
 
     gl::Hex* selectedHex = nullptr;
     gl::Ship* selectedShip = nullptr;
     bool waitingForMove = false;
+    bool isDragging = false;
+    sf::Vector2f lastMousePos;
+
+    std::vector<gl::Hex*> currentPath;
+    gl::Hex* targetHex = nullptr; // Новая переменная для хранения целевой клетки
 
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) window.close();
 
-            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::R) {
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::C) {
                 colScheme = (colScheme == COLORS) ? INVERT : COLORS;
                 colSchemeInactive = (colSchemeInactive == DARK_COLORS) ? INVERT : DARK_COLORS;
             }
 
-            // if (event.type == sf::Event::MouseWheelScrolled) {
-            //     if (event.mouseWheelScroll.delta > 0) {
-            //         view.zoom(0.9f); // Zoom in
-            //     } else {
-            //         view.zoom(1.1f); // Zoom out
-            //     }
-            //     window.setView(view); // Apply the new view
-            // }
+            if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Enter) {
+                if (waitingForMove && selectedShip && targetHex) {
+                    bool actionPerformed = false;
 
-            // if (event.type == sf::Event::KeyPressed)
-            // {
-            //     if (event.key.code == sf::Keyboard::Left)
-            //         view.move(-10.f, 0.f); // Move left
-            //     if (event.key.code == sf::Keyboard::Right)
-            //         view.move(10.f, 0.f);  // Move right
-            //     if (event.key.code == sf::Keyboard::Up)
-            //         view.move(0.f, -10.f); // Move up
-            //     if (event.key.code == sf::Keyboard::Down)
-            //         view.move(0.f, 10.f);  // Move down
-            //     window.setView(view); // Apply the updated view
-            // }
+                    // --- Перемещение ---
+                    if (selectedShip->canMoveTo(targetHex, hexMap)) {
+                        selectedShip->moveTo(targetHex, hexMap);
+                        selectedShip->takeGoldFromCell(targetHex);
+                        addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
+                        std::cout << "Корабль перемещен на (" << targetHex->q << ", " << targetHex->r << ")" << std::endl;
+                        actionPerformed = true;
+                    }
+                    // --- Атака вражеского корабля ---
+                    else if (targetHex->getShip() && targetHex->getShip()->getOwner() != gl::Owner::FRIENDLY) {
+                        selectedShip->giveDamage(targetHex, hexMap);
+                        std::cout << "Атакован вражеский корабль на (" << targetHex->q << ", " << targetHex->r << ")" 
+                            << " hp: " << targetHex->getShip()->getHealth() 
+                            << " my hp " << selectedShip->getHealth() << std::endl;
 
-            // Обработка клика мыши
+                        if (targetHex->getShip()->isDestroyed()) {
+                            std::cout << "Корабль противника уничтожен!" << std::endl;
+                        }
+                        actionPerformed = true;
+                    }
+
+                    if (actionPerformed) {
+                        waitingForMove = false;
+                        selectedShip = nullptr;
+                        selectedHex = nullptr;
+                        targetHex = nullptr;
+                        currentPath.clear();
+                    } else {
+                        std::cout << "Невозможно выполнить действие" << std::endl;
+                    }
+                }
+            }
+
+            // Обработка зума и перемещения камеры (остается без изменений)
+            if (event.type == sf::Event::MouseWheelScrolled) {
+                if (event.mouseWheelScroll.delta > 0) {
+                    view.zoom(0.9f);
+                } else {
+                    view.zoom(1.1f);
+                }
+                window.setView(view);
+            }
+
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::Left)
+                    view.move(-10.f, 0.f);
+                if (event.key.code == sf::Keyboard::Right)
+                    view.move(10.f, 0.f);
+                if (event.key.code == sf::Keyboard::Up)
+                    view.move(0.f, -10.f);
+                if (event.key.code == sf::Keyboard::Down)
+                    view.move(0.f, 10.f);
+                if (event.key.code == sf::Keyboard::Equal)
+                    view.zoom(0.9f);
+                if (event.key.code == sf::Keyboard::Hyphen || event.key.code == sf::Keyboard::Subtract)
+                    view.zoom(1.1f);
+                if (event.key.code == sf::Keyboard::R)
+                    view = defaultView;
+
+                window.setView(view);
+            }
+
             if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-                sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+                isDragging = true;
+                lastMousePos = window.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
+            }
+
+            if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left) {
+                isDragging = false;
+            }
+
+            if (event.type == sf::Event::MouseMoved && isDragging) {
+                sf::Vector2f currentMousePos = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+                sf::Vector2f delta = lastMousePos - currentMousePos;
+                view.move(delta);
+                window.setView(view);
+                lastMousePos = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+            }
+
+            // Обработка клика мыши для выбора цели
+            if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+                sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
 
                 for (auto& hex : hexMap) {
                     float hx = hex.q * hexRadius * 1.5 + 50;
                     float hy = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0 + 50;
-                    // Проверка попадания (аппроксимация через круг)
-                    float dx = mousePos.x - hx;
-                    float dy = mousePos.y - hy;
+
+                    float dx = worldPos.x - hx;
+                    float dy = worldPos.y - hy;
 
                     if (std::sqrt(dx*dx + dy*dy) <= hexRadius) {
-                        if (waitingForMove) {
-                            // --- Перемещение выбранного корабля ---
-                            if (selectedShip && selectedShip->canMoveTo(&hex, hexMap)) {
-                                selectedShip->moveTo(&hex, hexMap);
-                                selectedShip->takeGoldFromCell(&hex); // если хочешь собрать то будь добр остановитсься на ней
-                                addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
-                                std::cout << "Корабль перемещен на (" << hex.q << ", " << hex.r << ")" << std::endl;
-                            }
-                            // --- Атака вражеского корабля ---
-                            else if (selectedShip && hex.getShip() && hex.getShip()->getOwner() != gl::Owner::FRIENDLY) {
-                                selectedShip->giveDamage(&hex, hexMap);
-                                std::cout << "Атакован вражеский корабль на (" << hex.q << ", " << hex.r << ")" << 
-                                    "       hp: " << hex.getShip()->getHealth() << "     my hp " << selectedShip->getHealth() << std::endl;
+                        if (waitingForMove && selectedShip) {
+                            // Выбор цели для перемещения/атаки
+                            targetHex = &hex;
+                            std::vector<gl::Hex*> reachableHexes = selectedShip->cellsInRange(*selectedShip->getCell(), hexMap, selectedShip->getMoveRange(), gl::RangeMode::MOVE);
+                            // currentPath = Ship::getShortestRoad(reachableHexes, selectedShip->getCell(), targetHex);
 
-                                if (hex.getShip()->isDestroyed()) {
-                                    std::cout << "Корабль противника уничтожен!" << std::endl;
-                                }
+                            if (targetHex->getShip() && targetHex->getShip()->getOwner() != gl::Owner::FRIENDLY) {
+                                std::cout << "Цель выбрана: атака вражеского корабля на (" 
+                                    << targetHex->q << ", " << targetHex->r << ")" << std::endl;
+                            } else {
+                                std::cout << "Цель выбрана: перемещение на (" 
+                                    << targetHex->q << ", " << targetHex->r << ")" << std::endl;
                             }
-                            else {
-                                // std::cout << "Невозможно переместить корабль сюда" << std::endl;
-                            }
-
-
-                            waitingForMove = false;
-                            selectedShip = nullptr;
-                            selectedHex = nullptr;
+                            std::cout << "Нажмите Enter для подтверждения действия или выберите другую цель" << std::endl;
 
                         } else {
+                            // Выбор корабля
                             if (hex.getShip() && hex.getShip()->getOwner() == gl::Owner::PLAYER) {
                                 selectedShip = hex.getShip();
                                 waitingForMove = true;
-                                std::cout << "Корабль выбран. Выберите цель для перемещения" << std::endl;
+                                targetHex = nullptr;
+                                currentPath.clear();
+                                std::cout << "Корабль выбран. Выберите цель для перемещения/атаки" << std::endl;
                             } else {
-                                // Нет корабля - просто подсвечиваем клетку
                                 selectedHex = &hex;
                                 selectedShip = nullptr;
                                 waitingForMove = false;
+                                targetHex = nullptr;
+                                currentPath.clear();
                             }
-
                         }
-
                         break;
                     }
                 }
             }
         }
+
+
         // удаляем мертвых
         for (auto& ship : ships) {
             if (ship->isDestroyed()) {
@@ -559,7 +450,7 @@ int main() {
                     double y_pos = reachableHex->r * hexRadius * sqrt(3) + (reachableHex->q % 2) * hexRadius * sqrt(3) / 2.0;
 
                     sf::ConvexShape reachableShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
-                    reachableShape.setFillColor(sf::Color(200, 40, 40, 90)); // Полупрозрачный 
+                    reachableShape.setFillColor(sf::Color(200, 40, 40, 50)); // Полупрозрачный 
                     window.draw(reachableShape);
                 }
             }
@@ -576,6 +467,17 @@ int main() {
                 }
             }
         }
+        
+        for (auto* hex : currentPath) {
+            sf::CircleShape marker(hexRadius / 3);
+            marker.setFillColor(sf::Color(100, 200, 255, 120));
+            marker.setOrigin(marker.getRadius(), marker.getRadius());
+            float hx = hex->q * hexRadius * 1.5f + 50;
+            float hy = hex->r * hexRadius * sqrt(3) + (hex->q % 2) * hexRadius * sqrt(3) / 2.0f + 50;
+            marker.setPosition(hx, hy);
+            window.draw(marker);
+        }
+
         window.display();
     }
 

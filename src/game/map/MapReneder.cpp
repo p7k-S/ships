@@ -1,12 +1,9 @@
-#pragma once
 #include <SFML/Graphics.hpp>
-#include <charconv>
 #include <cmath>
-#include "../../game/map.h"
-#include "../../game/CubePerlin.h"
+#include "Cell.h"
+#include "PerlinNoise.h"
 
-// --- Функция создания гекса для SFML ---
-inline sf::ConvexShape createHex(double x, double y, double radius) {
+sf::ConvexShape createHex(double x, double y, double radius) {
     sf::ConvexShape hex;
     hex.setPointCount(6);
     for (int i = 0; i < 6; ++i) {
@@ -18,7 +15,7 @@ inline sf::ConvexShape createHex(double x, double y, double radius) {
     return hex;
 }
 
-inline std::vector<GameLogic::Hex> createMap(const PerlinNoise& perlin, int mapWidth, int mapHeight, int octaves, const double scale)
+std::vector<GameLogic::Hex> createMap(const PerlinNoise& perlin, int mapWidth, int mapHeight, int octaves, const double scale)
 {
     std::vector<GameLogic::Hex> hexMap;
     hexMap.reserve(mapWidth * mapHeight);
@@ -34,16 +31,7 @@ inline std::vector<GameLogic::Hex> createMap(const PerlinNoise& perlin, int mapW
     return hexMap;
 }
 
-
-inline std::vector<double> getNoises(std::vector<GameLogic::Hex> hexMap){
-    std::vector<double> noises;
-    for (const auto hex : hexMap) {
-        noises.push_back(hex.getNoise());
-    }
-    return noises;
-}
-
-inline std::vector<double> getlandscapehex(std::vector<GameLogic::Hex> hexMap){
+std::vector<double> getNoises(std::vector<GameLogic::Hex> hexMap){
     std::vector<double> noises;
     for (const auto hex : hexMap) {
         noises.push_back(hex.getNoise());
