@@ -1,3 +1,4 @@
+#include <SFML/Graphics.hpp>
 #include "../GameLogic.h"
 #include "../map/Cell.h"
 #include "Ship.h"
@@ -201,5 +202,177 @@ std::vector<Hex*> Ship::getShortestRoad(std::vector<Hex*>& area, Hex* start, Hex
 }
 
 */
+
+#include <vector>
+#include <algorithm>
+#include <unordered_map>
+
+// Структура для хранения ребра гекса
+struct HexEdge {
+    Hex* hex;
+    int side; // 0-5, стороны гекса
+    
+    bool operator==(const HexEdge& other) const {
+        return hex == other.hex && side == other.side;
+    }
+};
+
+// Хеш для HexEdge
+struct HexEdgeHash {
+    std::size_t operator()(const HexEdge& edge) const {
+        return std::hash<Hex*>()(edge.hex) ^ (std::hash<int>()(edge.side) << 1);
+    }
+};
+
+// Функция для получения соседнего гекса по стороне
+Hex* getNeighborHex(Hex* hex, int side, const std::vector<Hex*>& allHexes) {
+    const auto& dirs = (hex->r % 2 == 0) ? DIRECTIONS_EVEN : DIRECTIONS_ODD;
+    if (side < 0 || side >= 6) return nullptr;
+    
+    int dq = dirs[side].first;
+    int dr = dirs[side].second;
+    
+    int targetQ = hex->q + dq;
+    int targetR = hex->r + dr;
+    
+    // Ищем гекс с такими координатами
+    for (Hex* candidate : allHexes) {
+        if (candidate->q == targetQ && candidate->r == targetR) {
+            return candidate;
+        }
+    }
+    
+    return nullptr; // Сосед не найден
+}
+
+// Функция для получения всех ребер гекса
+std::vector<HexEdge> getHexEdges(Hex* hex) {
+    std::vector<HexEdge> edges;
+    for (int side = 0; side < 6; ++side) {
+        edges.push_back({hex, side});
+    }
+    return edges;
+}
+
+// Основная функция для получения периметра
+std::vector<HexEdge> getPerimeterEdges(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes) {
+    std::vector<HexEdge> perimeterEdges;
+    
+    for (Hex* hex : area) {
+        // Проверяем все 6 сторон гекса
+        for (int side = 0; side < 6; ++side) {
+            Hex* neighbor = getNeighborHex(hex, side, allHexes);
+            
+            // Если соседа нет ИЛИ сосед есть, но его нет в области - это периметр
+            if (!neighbor || std::find(area.begin(), area.end(), neighbor) == area.end()) {
+                perimeterEdges.push_back({hex, side});
+            }
+        }
+    }
+    
+    return perimeterEdges;
+}
+
+// Упрощенная версия - возвращает только граничные гексы (без ребер)
+std::vector<Hex*> getBorderHexes(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes) {
+    std::vector<Hex*> borderHexes;
+    
+    for (Hex* hex : area) {
+        bool isBorder = false;
+        
+        // Проверяем всех соседей используя вашу функцию areNeighbors
+        for (Hex* candidate : allHexes) {
+            if (areNeighbors(hex, candidate)) {
+                // Если сосед не в области - это граничный гекс
+                if (std::find(area.begin(), area.end(), candidate) == area.end()) {
+                    isBorder = true;
+                    break;
+                }
+            }
+        }
+        
+        if (isBorder) {
+            borderHexes.push_back(hex);
+        }
+    }
+    
+    return borderHexes;
+}
+
+// Альтернативная версия с использованием getNeighbors
+std::vector<Hex*> getBorderHexesWithNeighbors(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes) {
+    std::vector<Hex*> borderHexes;
+    
+    // Создаем карту всех гексов для быстрого поиска
+    std::unordered_map<int, std::unordered_map<int, Hex*>> hexMap;
+    for (Hex* hex : allHexes) {
+        hexMap[hex->q][hex->r] = hex;
+    }
+    
+    for (Hex* hex : area) {
+        bool isBorder = false;
+        
+        // Получаем позиции соседей
+        auto neighborPositions = getNeighbors(*hex);
+        
+        // Проверяем каждого соседа
+        for (const auto& neighborPos : neighborPositions) {
+            auto qIt = hexMap.find(neighborPos.q);
+            if (qIt != hexMap.end()) {
+                auto rIt = qIt->second.find(neighborPos.r);
+                if (rIt != qIt->second.end()) {
+                    Hex* neighbor = rIt->second;
+                    // Если сосед не в области - это граничный гекс
+                    if (std::find(area.begin(), area.end(), neighbor) == area.end()) {
+                        isBorder = true;
+                        break;
+                    }
+                } else {
+                    // Сосед не существует в карте - это граница
+                    isBorder = true;
+                    break;
+                }
+            } else {
+                // Сосед не существует в карте - это граница
+                isBorder = true;
+                break;
+            }
+        }
+        
+        if (isBorder) {
+            borderHexes.push_back(hex);
+        }
+    }
+    
+    return borderHexes;
+}
+
+// // Функция для отрисовки периметра (используя граничные гексы)
+// void renderAttackRangePerimeter(const std::vector<Hex*>& attackRangeHexes, 
+//                                const std::vector<Hex*>& allHexes) {
+//     // Получаем граничные гексы
+//     auto borderHexes = getBorderHexesWithNeighbors(attackRangeHexes, allHexes);
+//
+//     // Отрисовываем граничные гексы с другим цветом
+//     for (Hex* borderHex : borderHexes) {
+//         // Используем вашу существующую функцию с другим цветом границы
+//         renderRangeHex(borderHex, 
+//                       sf::Color(200, 40, 40, 50),  // Внутренний цвет (полупрозрачный красный)
+//                       sf::Color::Red);              // Цвет границы (красный)
+//     }
+// }
+//
+// // Или если хотите отрисовать только границу без заливки:
+// void renderAttackRangeBorderOnly(const std::vector<Hex*>& attackRangeHexes, 
+//                                 const std::vector<Hex*>& allHexes) {
+//     auto borderHexes = getBorderHexesWithNeighbors(attackRangeHexes, allHexes);
+//
+//     for (Hex* borderHex : borderHexes) {
+//         // Отрисовываем только границу
+//         renderRangeHex(borderHex, 
+//                       sf::Color::Transparent,      // Прозрачная заливка
+//                       sf::Color::Red);              // Красная граница
+//     }
+// }
 
 } // namespace GameLogic

@@ -21,14 +21,6 @@ namespace GameLogic {
         FRIENDLY      // Торговые корабли (нейтральные)
     };
 
-    // Типы клеток
-    enum class CellType {
-        DEEPWATER,
-        WATER,
-        LAND,
-        FOREST
-    };
-
     // Типы погоды
     enum class Weather {
         CALM,       // Штиль

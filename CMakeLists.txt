@@ -25,7 +25,8 @@ include_directories(
 set(SOURCE_FILES
     src/main.cpp
     src/game/troops/Ship.cpp
-    src/game/map/MapReneder.cpp
+    src/game/map/GenerateMap.cpp
+    src/game/Game.cpp
     # src/game/GameLogic.h
     # src/game/map.h
     # src/game/ship.h

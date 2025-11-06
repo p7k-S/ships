@@ -145,5 +145,13 @@ namespace GameLogic {
 
             uint8_t getMoveRange() const { return move; }
             void setMoveRange(uint8_t range) { move = range; }
+
+            Hex* getNeighborHex(Hex* hex, int side, const std::vector<Hex*>& allHexes);
+            struct HexEdge;
+            struct HexEdgeHash;
+            std::vector<HexEdge> getHexEdges(Hex* hex);
+            std::vector<HexEdge> getPerimeterEdges(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes);
+            std::vector<Hex*> getBorderHexes(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes);
+            std::vector<Hex*> getBorderHexesWithNeighbors(const std::vector<Hex*>& area, const std::vector<Hex>& allHexes);
     };
 } //namespace GameLogic

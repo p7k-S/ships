@@ -12,6 +12,12 @@ namespace GameLogic {
         Type type;
         std::string description;
     };
+    enum class CellType {
+        DEEPWATER,
+        WATER,
+        LAND,
+        FOREST
+    };
 
     using HexContent = std::variant<Empty, Treasure, Gold, SpecialItem>;
     using HexTroop = std::variant<Empty, Treasure, Gold, SpecialItem>;
@@ -88,6 +94,10 @@ namespace GameLogic {
                 return toTake;
             }
             return 0;
+        }
+
+        bool operator==(const Hex& other) const {
+            return q == other.q && r == other.r;
         }
 
     };
