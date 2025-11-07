@@ -1,7 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
-#include "../../game/constants.h"
+#include "../../game/GameConfig.h"
 
 class SimpleConfigUI {
 private:
@@ -16,7 +16,7 @@ private:
     
 public:
     SimpleConfigUI() : window(sf::VideoMode(500, 400), "Game Configuration") {
-        if (!font.loadFromFile("/home/zane/Study/mirea/sem3/kursach/src/textures/airborne.ttf")) {
+        if (!font.loadFromFile(game_font)) {
             std::cout << "Font not found, using default" << std::endl;
         }
     }

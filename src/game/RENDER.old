@@ -1,0 +1,233 @@
+#include "Game.h"
+#include "../render/Colors.hpp"
+#include "../render/sprites.h"
+#include "../render/info_bars.h"
+#include "map/GenerateMap.h"
+#include "GameConfig.h"
+#include <iostream>
+#include <cmath>
+
+void Game::render() {
+    window.clear(sf::Color(20, 20, 30));
+
+    if (!font.loadFromFile("/home/zane/Study/mirea/sem3/kursach/src/textures/airborne.ttf")) {
+        std::cout << "Font not found, using default" << std::endl;
+    }
+
+    if (fullscreenMapMode)
+        window.setView(mapView);
+
+    // Если были открыты новые клетки — обновляем карту
+    if (seenCells.size() != cachedSeenCount) {
+        rebuildSeenMapLayer();
+        cachedSeenCount = seenCells.size();
+    }
+
+    // --- 1. Отрисовываем кэшированный слой разведанных клеток ---
+    sf::Sprite seenSprite(mapSeenLayer.getTexture());
+    window.draw(seenSprite);
+
+    // --- 2. Отрисовываем видимые клетки поверх, с подсветкой ---
+    renderVisibleCells();
+
+    // --- 3. Отрисовываем динамические объекты ---
+    renderDynamicObjects();
+
+    // --- 4. Отрисовываем UI ---
+    renderShipUI();
+    renderShipRange();
+    window.display();
+}
+
+// ---------------------------------------------------------------
+// Построение кэшированного слоя уже разведанных клеток
+// ---------------------------------------------------------------
+void Game::rebuildSeenMapLayer() {
+    mapSeenLayer.create(window.getSize().x, window.getSize().y);
+    mapSeenLayer.clear(sf::Color(0, 0, 0, 0));
+
+    for (const auto& hexp : seenCells) {
+        const auto& hex = *hexp;
+        float x = hex.q * hexRadius * 1.5f + 50;
+        float y = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0f + 50;
+
+        sf::ConvexShape hexShape = createHex(x, y, hexRadius - 1);
+        sf::Color color = getColorByScheme(hex.getNoise(), colSchemeInactive, deepWater, water, land);
+        hexShape.setFillColor(color);
+        hexShape.setOutlineColor(MAP_COLORS["very_dark_gray"]);
+        hexShape.setOutlineThickness(1);
+
+        mapSeenLayer.draw(hexShape);
+    }
+
+    mapSeenLayer.display();
+}
+
+// ---------------------------------------------------------------
+// Отрисовка текущих видимых клеток поверх разведанных (ярче)
+// ---------------------------------------------------------------
+void Game::renderVisibleCells() {
+    for (const auto* hex : vieweableHexes) {
+        float x = hex->q * hexRadius * 1.5f + 50;
+        float y = hex->r * hexRadius * sqrt(3) + (hex->q % 2) * hexRadius * sqrt(3) / 2.0f + 50;
+
+        sf::ConvexShape hexShape = createHex(x, y, hexRadius - 1);
+        sf::Color color = getColorByScheme(hex->getNoise(), colScheme, deepWater, water, land);
+        hexShape.setFillColor(color);
+        hexShape.setOutlineColor(MAP_COLORS["dark_gray"]);
+        hexShape.setOutlineThickness(1);
+
+        // Подсветка текущих видимых клеток
+        sf::Color brightOverlay(255, 255, 255, 40);
+        hexShape.setFillColor(blendColors(hexShape.getFillColor(), brightOverlay));
+
+        window.draw(hexShape);
+    }
+}
+
+// ---------------------------------------------------------------
+// Рендер динамических объектов: корабли, золото, сокровища
+// ---------------------------------------------------------------
+void Game::renderDynamicObjects() {
+    for (const auto& hexp : seenCells) {
+        const auto& hex = *hexp;
+        bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end();
+
+        if (!isVisible) continue;
+
+        float x = hex.q * hexRadius * 1.5f + 50;
+        float y = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0f + 50;
+
+        // --- корабль ---
+        if (hex.hasShip()) {
+            sf::Sprite shipSprite;
+            const auto* ship = hex.getShip();
+            switch (ship->getOwner()) {
+                case gl::Owner::PLAYER: shipSprite.setTexture(player_ship_texture); break;
+                case gl::Owner::ENEMY: shipSprite.setTexture(enemy_ship_texture); break;
+                case gl::Owner::PIRATE: shipSprite.setTexture(pirate_ship_texture); break;
+                default: continue;
+            }
+
+            shipSprite.setOrigin(shipSprite.getLocalBounds().width / 2.f, shipSprite.getLocalBounds().height / 2.f);
+            shipSprite.setScale((hexRadius * 1.5f) / shipSprite.getLocalBounds().width,
+                                (hexRadius * 1.5f) / shipSprite.getLocalBounds().width);
+            shipSprite.setPosition(x, y);
+
+            window.draw(shipSprite);
+        }
+
+        // --- сокровища / золото ---
+        if (hex.hasTreasure()) {
+            sf::Sprite s;
+            s.setTexture(treasure_texture);
+            normlaizeSprite(s, hexRadius, x - 50, y - 50);
+            window.draw(s);
+        } else if (hex.hasGold()) {
+            sf::Sprite s;
+            s.setTexture(gold_texture);
+            normlaizeSprite(s, hexRadius, x - 50, y - 50);
+            window.draw(s);
+            drawResourceText(window, hex, x, y, hexRadius, font, font_size);
+        }
+    }
+}
+
+// ---------------------------------------------------------------
+// Вспомогательная функция — смешивание двух цветов (для подсветки)
+// ---------------------------------------------------------------
+sf::Color Game::blendColors(const sf::Color& base, const sf::Color& overlay) {
+    sf::Uint8 r = std::min(255, base.r + overlay.r * overlay.a / 255);
+    sf::Uint8 g = std::min(255, base.g + overlay.g * overlay.a / 255);
+    sf::Uint8 b = std::min(255, base.b + overlay.b * overlay.a / 255);
+    return sf::Color(r, g, b, base.a);
+}
+
+void Game::renderShipUI() {
+    for (const auto &hexp : seenCells) {
+        const auto &hex = *hexp;
+        bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(),
+                hexp) != vieweableHexes.end();
+        if (hex.hasShip() && isVisible) {
+            double x_pos = hex.q * hexRadius * 1.5;
+            double y_pos =
+                hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
+            if (colScheme == COLORS) {
+                drawShipBar(window, hex.getShip(), x_pos + 50, y_pos + 50, hexRadius,
+                        font, font_size);
+            }
+        }
+    }
+}
+
+void Game::renderShipRange() {
+    if (!selectedShip) return;
+    
+    gl::Hex* selectedHex = selectedShip->getCell();
+    if (!selectedHex) return;
+
+    // Диапазон перемещения
+    std::vector<gl::Hex*> reachableHexes = selectedShip->cellsInRange(
+        *selectedHex, hexMap, selectedShip->getMoveRange(), gl::RangeMode::MOVE);
+    for (gl::Hex* reachableHex : reachableHexes) {
+        renderRangeHex(reachableHex, sf::Color(100, 255, 100, 80), sf::Color(112, 129, 88, 255));
+    }
+
+    // Диапазон атаки
+    std::vector<gl::Hex*> attackRangeHexes = selectedShip->cellsInRange(
+        *selectedHex, hexMap, selectedShip->getDamageRange(), gl::RangeMode::DAMAGE);
+    for (gl::Hex* attackHex : attackRangeHexes) {
+        renderRangeHex(attackHex, sf::Color(200, 40, 40, 50), sf::Color::Transparent);
+    }
+}
+
+void Game::renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor) {
+    double x_pos = hex->q * hexRadius * 1.5;
+    double y_pos = hex->r * hexRadius * sqrt(3) + (hex->q % 2) * hexRadius * sqrt(3) / 2.0;
+
+    sf::ConvexShape rangeShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
+    rangeShape.setFillColor(fillColor);
+    rangeShape.setOutlineColor(outlineColor);
+    rangeShape.setOutlineThickness(1);
+    window.draw(rangeShape);
+}
+
+void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite) {
+    const auto* ship = hex.getShip();
+    if (!ship) return;
+
+    switch (ship->getOwner()) {
+        case gl::Owner::PIRATE:
+            shipSprite.setTexture(pirate_ship_texture);
+            hexShape.setOutlineColor(sf::Color::Black);
+            break;
+        case gl::Owner::ENEMY:
+            shipSprite.setTexture(enemy_ship_texture);
+            hexShape.setOutlineColor(MAP_COLORS["burgundy"]);
+            break;
+        case gl::Owner::PLAYER:
+            shipSprite.setTexture(player_ship_texture);
+            hexShape.setOutlineColor(sf::Color::Green);
+            break;
+        case gl::Owner::FRIENDLY:
+            hexShape.setOutlineColor(sf::Color::White);
+            break;
+    }
+    
+    if (colScheme == INVERT) {
+        switch (ship->getOwner()) {
+            case gl::Owner::PIRATE:
+                hexShape.setFillColor(MAP_COLORS["very_dark_gray"]);
+                break;
+            case gl::Owner::ENEMY:
+                hexShape.setFillColor(MAP_COLORS["burgundy"]);
+                break;
+            case gl::Owner::PLAYER:
+                hexShape.setFillColor(MAP_COLORS["dark_green"]);
+                break;
+            case gl::Owner::FRIENDLY:
+                hexShape.setFillColor(sf::Color::White);
+                break;
+        }
+    }
+}

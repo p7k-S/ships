@@ -24,9 +24,21 @@ include_directories(
 # Укажите исходные файлы
 set(SOURCE_FILES
     src/main.cpp
-    src/game/troops/Ship.cpp
+    # src/game/troops/Ship.cpp
     src/game/map/GenerateMap.cpp
+
+    src/game/GameConfig.cpp
     src/game/Game.cpp
+    src/game/GameInit.cpp
+    src/game/GameRender.cpp
+    src/game/GameEvents.cpp 
+    src/game/GameLogic.cpp
+    src/game/GameMap.cpp 
+    src/game/GameUtils.cpp
+
+    src/render/ui/UIRenderer.cpp
+
+
     # src/game/GameLogic.h
     # src/game/map.h
     # src/game/ship.h

@@ -1,8 +1,12 @@
 #pragma once
 #include "../GameLogic.h"
 #include "../map/Cell.h"
+#include "../entity/Enemy.h"
+#include "../entity/Player.h"
+#include "../entity/Pirate.h"
 
 namespace GameLogic {
+
     class Ship {
         private:
             Owner owner;
@@ -36,8 +40,6 @@ namespace GameLogic {
             void setCell(Hex* cell) { curCell = cell; }
             Hex* getCell() const { return curCell; }
 
-            static std::vector<Hex*> getShortestRoad(std::vector<Hex>& area, Hex* start, Hex* end);
-            static std::vector<Hex*> getShortestRoad(std::vector<Hex*>& area, Hex* start, Hex* end);
             bool areNeighbors(Hex* h1, Hex* h2);
             
             // Дамаг
@@ -50,24 +52,23 @@ namespace GameLogic {
                     health -= dmg; 
                 }
             }
-            virtual void giveDamage(Hex* cell, std::vector<Hex>& hexMap) {
-                if (cell == curCell) return;
+            virtual void giveDamage(Hex* targetCell, std::vector<Hex>& hexMap) {
+                if (targetCell == curCell) return;
                 std::vector<Hex*> reachable = cellsInRange(*curCell, hexMap, curCell->getShip()->getDamageRange(), RangeMode::DAMAGE); // false=не радиус обзора
 
-                if (std::find(reachable.begin(), reachable.end(), cell) != reachable.end()) {
-                    Ship* enemy = cell->getShip();
+                if (std::find(reachable.begin(), reachable.end(), targetCell) != reachable.end()) {
+                    Ship* enemy = targetCell->getShip();
                     enemy->takeDamage(damage);
                     if (enemy->isDestroyed()) {
                         uint16_t enemyGold = enemy->getGold(), tmp = getMaxGold() - getGold();
                         uint16_t getPossibleGold = std::min(enemyGold, tmp);
                         enemy->loseGold(getPossibleGold);
                         takeGold(getPossibleGold);
-                        addGoldToCell(cell, enemy->getGold());
+                        addGoldToCell(targetCell, enemy->getGold());
                     }
                 }
             }
 
-            bool isEnemy() const { return owner == Owner::ENEMY || owner == Owner::PIRATE; }
             bool isDestroyed() const { return health == 0; }
             void Destroy() {
                 if (curCell) {
@@ -141,17 +142,8 @@ namespace GameLogic {
                 targetHex->setShip(this);
             }
 
-            std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode) const; // ship.cpp
-
             uint8_t getMoveRange() const { return move; }
             void setMoveRange(uint8_t range) { move = range; }
 
-            Hex* getNeighborHex(Hex* hex, int side, const std::vector<Hex*>& allHexes);
-            struct HexEdge;
-            struct HexEdgeHash;
-            std::vector<HexEdge> getHexEdges(Hex* hex);
-            std::vector<HexEdge> getPerimeterEdges(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes);
-            std::vector<Hex*> getBorderHexes(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes);
-            std::vector<Hex*> getBorderHexesWithNeighbors(const std::vector<Hex*>& area, const std::vector<Hex>& allHexes);
     };
 } //namespace GameLogic

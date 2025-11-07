@@ -12,20 +12,13 @@ namespace GameLogic {
         Type type;
         std::string description;
     };
-    enum class CellType {
-        DEEPWATER,
-        WATER,
-        LAND,
-        FOREST
-    };
 
     using HexContent = std::variant<Empty, Treasure, Gold, SpecialItem>;
-    using HexTroop = std::variant<Empty, Treasure, Gold, SpecialItem>;
+    // using HexTroop = std::variant<Empty, Treasure, Gold, SpecialItem>;
 
     // hex coords
     class Hex {
         HexContent content;
-        Owner owner;
         Ship* troop;         //only 1 allowed
         double noiseValue;
         CellType type;
@@ -45,15 +38,15 @@ namespace GameLogic {
         void setEmpty() { content = Empty{}; }
 
         // Owner
-        void setOwner(Owner newOwner) {
-            if (type == CellType::LAND || type == CellType::FOREST) {
-                owner = newOwner;
-            } else {
-                owner = GameLogic::Owner::FRIENDLY;
-            }
-        }
-
-        Owner getOwner() { return owner; }
+        // void setOwner(Owner newOwner) {
+        //     if (type == CellType::LAND || type == CellType::FOREST) {
+        //         owner = newOwner;
+        //     } else {
+        //         owner = GameLogic::Owner::FRIENDLY;
+        //     }
+        // }
+        //
+        // Owner getOwner() { return owner; }
 
         // ship
         void setShip(Ship* ship) {

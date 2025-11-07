@@ -1,36 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
-#include <unordered_map>
-#include <string>
+#include "../game/GameConfig.h"
 
-std::unordered_map<std::string, sf::Color> MAP_COLORS = {
-    {"gray", sf::Color(128, 128, 128)},
-    {"dark_gray", sf::Color(80, 80, 80)},
-    {"deep_yellow", sf::Color(255, 200, 50)},
-    {"burgundy", sf::Color(150, 30, 70)},
-    {"dark_green", sf::Color(2, 124, 2)},
-    {"reachable_border", sf::Color(2, 124, 2)}, // borders of reachable cells
-    {"white", sf::Color(255, 255, 255)},
-    {"very_dark_gray", sf::Color(40, 40, 40)},
-    {"yellow", sf::Color(255, 255, 0)},
-    {"red", sf::Color(255, 0, 0)},
-    {"green", sf::Color(0, 255, 0)},
-    {"blue", sf::Color(0, 0, 255)},
-    {"yellow2", sf::Color(255, 255, 0)},
-    {"magenta", sf::Color(255, 0, 255)},
-    {"cyan", sf::Color(0, 255, 255)},
-    {"dark_red", sf::Color(128, 0, 0)},
-    {"dark_green2", sf::Color(0, 128, 0)}
-};
-
-enum ColorScheme {
-    COLORS,
-    DARK_COLORS,
-    INVERT
-};
-
-ColorScheme colScheme = COLORS;
-ColorScheme colSchemeInactive = DARK_COLORS;
 
 inline sf::Color getColorByThreshold_view(double value, double deepWater, double water, double land) {
     if (value <= deepWater) return sf::Color(0x0245ABFF); // deepWater

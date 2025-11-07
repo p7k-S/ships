@@ -21,6 +21,8 @@ public:
     void run();
 
 private:
+    int totalTurnCount = 0;
+
         // Основные методы игрового цикла
     void processEvents();
     void update();
@@ -58,6 +60,28 @@ private:
     void updateVisibleCells();
     
     // Рендеринг
+    sf::RenderTexture mapLayer;
+    sf::VertexArray shipsBatch;
+    sf::Texture shipTextureAtlas;
+    bool mapNeedsUpdate = true;
+    bool shipsNeedUpdate = true;
+    std::vector<sf::Sprite> shipSprites;
+
+    sf::RenderTexture mapSeenLayer;
+std::size_t cachedSeenCount = 0;
+
+// Новые методы
+void rebuildSeenMapLayer();
+void renderVisibleCells();
+void renderDynamicObjects();
+sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
+
+
+    // Методы
+    void rebuildMapLayer();
+    void appendHexToVertexArray(sf::VertexArray& va, float cx, float cy, float radius, sf::Color color);
+    void rebuildShipBatch();
+
     void renderMap();
     void renderHex(const gl::Hex& hex, float x_pos, float y_pos);
     void renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite);
@@ -65,6 +89,8 @@ private:
     void renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor);
     void renderPath();
     void renderShipUI();
+    void renderBottomStatsBar();
+    void renderCellInfoPanel();
 
     // Функции для работы с периметром
     // std::vector<gl::Hex*> getBorderHexesWithNeighbors(const std::vector<gl::Hex*>& area, const std::vector<gl::Hex>& allHexes);
@@ -79,6 +105,14 @@ private:
     sf::RenderWindow window;
     sf::View view;
     sf::View defaultView;
+    sf::View mapView;
+    sf::View uiView;
+    bool fullscreenMapMode = false;
+    float zoomLevel = 1.f;
+    // sf::FloatRect mapViewport = {0.f, 0.f, 0.75f, 0.8f}; // (x, y, width, height) в долях окна sf::FloatRect rightPanelViewport = {0.75f, 0.f, 0.25f, 0.8f};
+    // sf::FloatRect bottomBarViewport = {0.f, 0.8f, 1.f, 0.2f};
+    bool isHexInView(float x, float y, float radius, const sf::FloatRect& viewBounds);
+    sf::FloatRect getViewBounds();
 
     // Текстуры
     sf::Texture player_ship_texture;
@@ -86,6 +120,7 @@ private:
     sf::Texture enemy_ship_texture;
     sf::Texture gold_texture;
     sf::Texture treasure_texture;
+
 
     // // Игровые данные
     std::vector<std::unique_ptr<gl::Ship>> ships;
