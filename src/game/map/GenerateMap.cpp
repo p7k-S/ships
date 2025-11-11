@@ -33,7 +33,7 @@ std::vector<GameLogic::Hex> createMap(const PerlinNoise& perlin, int mapWidth, i
 
 std::vector<double> getNoises(std::vector<GameLogic::Hex>& hexMap){
     std::vector<double> noises;
-    for (const auto hex : hexMap) {
+    for (const auto& hex : hexMap) {
         noises.push_back(hex.getNoise());
     }
     return noises;

@@ -26,6 +26,10 @@ set(SOURCE_FILES
     src/main.cpp
     # src/game/troops/Ship.cpp
     src/game/map/GenerateMap.cpp
+    src/game/map/MapFuncs.cpp
+    src/game/troops/BaseTroop.cpp
+
+    src/game/entity/EntityFuncs.cpp
 
     src/game/GameConfig.cpp
     src/game/Game.cpp

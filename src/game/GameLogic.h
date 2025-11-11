@@ -12,14 +12,21 @@
 namespace GameLogic {
     class Hex;
     // troops type
+    class Troop;
     class Ship;
     class Cannon;
     class Solder;
+    class Lighthouse;
 
     // entity type
     class Player;
     class Enemy;
     class Pirate;
+
+    // items type
+    class Item;
+    class Gold;
+    class Treasure;
 
     // weather type
     enum class Weather {

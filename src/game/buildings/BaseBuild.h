@@ -1,0 +1,4 @@
+namespace GameLogic {
+    class Building {
+    };
+}

@@ -1,6 +1,6 @@
-#include "BaseTroop.h"
+#include "BaseItem.h"
 
 namespace GameLogic {
-    class Solder : Troop {
+    class Shovel : public Item {
     };
 } // namespace GameLogic

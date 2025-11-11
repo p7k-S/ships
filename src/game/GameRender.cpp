@@ -2,8 +2,15 @@
 #include "../render/Colors.hpp"
 #include "../render/sprites.h"
 #include "../render/info_bars.h"
+
 #include "map/GenerateMap.h"
+#include "map/Cell.h"
+
+#include "GameLogic.h"
+#include "items/Treasure.h" // Добавьте этот include
+
 #include "GameConfig.h"
+#include "GameLogic.h"
 // #include <iostream>
 // #include "../render/ui/UIRenderer.h"
 
@@ -108,10 +115,10 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
 
     // Определяем видимость и цветовую схему
     bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(), &hex) != vieweableHexes.end();
-    auto currentScheme = isVisible ? colScheme : colSchemeInactive;
+    auto currentScheme = isVisible ? colSchemeDefault : colSchemeInactive;
 
     hexShape.setFillColor(getColorByScheme(hex.getNoise(), currentScheme, deepWater, water, land));
-    hexShape.setOutlineColor(MAP_COLORS[isVisible ? "dark_gray" : "very_dark_gray"]);
+    hexShape.setOutlineColor(COLORS[isVisible ? "dark_gray" : "very_dark_gray"]);
     hexShape.setOutlineThickness(1);
 
     // Подготовка спрайтов
@@ -121,9 +128,9 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
     bool hasShip = false;
     
     if (isVisible) {
-        hasShip = hex.hasShip();
-        hasTreasure = hex.hasTreasure();
-        hasGold = hex.hasGold();
+        hasShip = hex.hasTroopOf<gl::Ship>();
+        hasTreasure = hex.hasItemOf<gl::Treasure>();
+        hasGold = hex.hasItemOf<gl::Gold>();
         
         if (hasShip) {
             renderShipOnHex(hex, hexShape, shipSprite);
@@ -144,7 +151,7 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
 
     // Выделение выбранного гекса
     if (!selectedShip && selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
-        hexShape.setOutlineColor(MAP_COLORS["deep_yellow"]);
+        hexShape.setOutlineColor(COLORS["deep_yellow"]);
         hexShape.setOutlineThickness(2);
     }
 
@@ -171,14 +178,14 @@ void Game::renderShipRange() {
     if (!selectedHex) return;
 
     // Диапазон перемещения
-    std::vector<gl::Hex*> reachableHexes = selectedShip->cellsInRange(
+    std::vector<gl::Hex*> reachableHexes = cellsInRange(
         *selectedHex, hexMap, selectedShip->getMoveRange(), gl::RangeMode::MOVE);
     for (gl::Hex* reachableHex : reachableHexes) {
         renderRangeHex(reachableHex, sf::Color(100, 255, 100, 80), sf::Color(112, 129, 88, 255));
     }
 
     // Диапазон атаки
-    std::vector<gl::Hex*> attackRangeHexes = selectedShip->cellsInRange(
+    std::vector<gl::Hex*> attackRangeHexes = cellsInRange(
         *selectedHex, hexMap, selectedShip->getDamageRange(), gl::RangeMode::DAMAGE);
     for (gl::Hex* attackHex : attackRangeHexes) {
         renderRangeHex(attackHex, sf::Color(200, 40, 40, 50), sf::Color::Transparent);
@@ -197,41 +204,36 @@ void Game::renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineCo
 }
 
 void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite) {
-    const auto* ship = hex.getShip();
+    auto* ship = hex.getTroopOf<gl::Ship>();
     if (!ship) return;
+    auto shipOwner = ship->getOwner();
 
-    switch (ship->getOwner()) {
-        case gl::Owner::PIRATE:
-            shipSprite.setTexture(pirate_ship_texture);
-            hexShape.setOutlineColor(sf::Color::Black);
-            break;
-        case gl::Owner::ENEMY:
-            shipSprite.setTexture(enemy_ship_texture);
-            hexShape.setOutlineColor(MAP_COLORS["burgundy"]);
-            break;
-        case gl::Owner::PLAYER:
-            shipSprite.setTexture(player_ship_texture);
-            hexShape.setOutlineColor(sf::Color::Green);
-            break;
-        case gl::Owner::FRIENDLY:
-            hexShape.setOutlineColor(sf::Color::White);
-            break;
+    if (isPlayerOwner(shipOwner)) {
+        shipSprite.setTexture(player_ship_texture);
+        hexShape.setOutlineColor(sf::Color::Green);
+    } else if (isEnemyOwner(shipOwner)) {
+        shipSprite.setTexture(enemy_ship_texture);
+        hexShape.setOutlineColor(COLORS["burgundy"]);
+    } else if (isPirateOwner(shipOwner)) {
+        shipSprite.setTexture(pirate_ship_texture);
+        hexShape.setOutlineColor(sf::Color::Black);
     }
+
+        // case gl::Owner::FRIENDLY:
+        //     hexShape.setOutlineColor(sf::Color::White);
+        //     break;
+    // }
     
-    if (colScheme == INVERT) {
-        switch (ship->getOwner()) {
-            case gl::Owner::PIRATE:
-                hexShape.setFillColor(MAP_COLORS["very_dark_gray"]);
-                break;
-            case gl::Owner::ENEMY:
-                hexShape.setFillColor(MAP_COLORS["burgundy"]);
-                break;
-            case gl::Owner::PLAYER:
-                hexShape.setFillColor(MAP_COLORS["dark_green"]);
-                break;
-            case gl::Owner::FRIENDLY:
-                hexShape.setFillColor(sf::Color::White);
-                break;
+    if (colSchemeDefault == INVERT) {
+        if (isPirateOwner(shipOwner)) {
+                    hexShape.setFillColor(COLORS["very_dark_gray"]);
+        } else if (isEnemyOwner(shipOwner)) {
+                    hexShape.setFillColor(COLORS["burgundy"]);
+        } else if (isPlayerOwner(shipOwner)) {
+                    hexShape.setFillColor(COLORS["dark_green"]);
+                // case gl::Owner::FRIENDLY:
+                //     hexShape.setFillColor(sf::Color::White);
+                //     break;
         }
     }
 }
@@ -241,12 +243,12 @@ void Game::renderShipUI() {
         const auto& hex = *hexp;
         bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end();
         
-        if (hex.hasShip() && isVisible) {
+        if (hex.hasTroopOf<gl::Ship>() && isVisible) {
             double x_pos = hex.q * hexRadius * 1.5;
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             
-            if (colScheme == COLORS) {
-                drawShipBar(window, hex.getShip(), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+            if (colSchemeDefault == COLORFULL) {
+                drawShipBar(window, hex.getTroopOf<gl::Ship>(), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
             }
         }
     }

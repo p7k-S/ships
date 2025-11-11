@@ -16,7 +16,7 @@ private:
     
 public:
     SimpleConfigUI() : window(sf::VideoMode(500, 400), "Game Configuration") {
-        if (!font.loadFromFile(game_font)) {
+        if (!font.loadFromFile(font_path)) {
             std::cout << "Font not found, using default" << std::endl;
         }
     }

@@ -11,7 +11,7 @@ bool random_map = false;
 bool unknown_map = false;
 double hexRadius = 30.0;
 
-int treasures = 3;
+uint16_t treasuresAmount = 3;
 double gold_perc_in_map = 0.15;
 double percent_ships_in_water = 0.02;
 double deepWater_delim = 0.2;

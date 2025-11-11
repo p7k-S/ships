@@ -1,6 +1,9 @@
 #include "Game.h"
 #include "GameConfig.h"
 #include <cmath>
+#include <unordered_set>
+#include <memory> // для std::shared_ptr
+
 
 bool Game::isPointInHex(const sf::Vector2f& point, const gl::Hex& hex) {
     float hx = hex.q * hexRadius * 1.5 + 50;
@@ -17,7 +20,7 @@ void Game::cleanupDestroyedShips() {
 
     ships.erase(
         std::remove_if(ships.begin(), ships.end(),
-            [](const std::unique_ptr<gl::Ship>& s) { return s->isDestroyed(); }),
+            [](const std::shared_ptr<gl::Ship>& s) { return s->isDestroyed(); }),
         ships.end());
 }
 
@@ -25,8 +28,8 @@ void Game::updateVisibleCells() {
     vieweableHexes.clear();
     std::unordered_set<gl::Hex*> unique;
     for (auto& ship : ships)
-        if (ship->getOwner() == gl::Owner::PLAYER)
-            for (auto* cell : ship->cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW))
+        if (isPlayerOwner(ship->getOwner()))
+            for (auto* cell : cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW))
                 if (unique.insert(cell).second)
                     vieweableHexes.push_back(cell);
 }

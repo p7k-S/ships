@@ -1,12 +1,17 @@
 #include "Game.h"
+#include "GameLogic.h"
 #include "../render/info_bars.h"
+#include "../game/entity/Player.h"
+#include "../game/troops/Ship.h"
+#include "../game/map/Cell.h"
+// #include "../game/troops/BaseTroop.h"
 #include <iostream>
 
 void Game::handleShipSelection(const sf::Vector2f& worldPos) {
     for (auto& hex : hexMap) {
         if (isPointInHex(worldPos, hex)) {
-            if (hex.getShip() && hex.getShip()->getOwner() == gl::Owner::PLAYER) {
-                selectedShip = hex.getShip();
+            if (hex.getTroopOf<gl::Ship>() && std::holds_alternative<gl::Player*>(hex.getTroopOf<gl::Ship>()->getOwner())) {
+                selectedShip = hex.getTroopOf<gl::Ship>();
                 waitingForMove = true;
                 targetHex = nullptr;
                 currentPath.clear();
@@ -38,9 +43,9 @@ void Game::executeShipAction() {
         selectedShip->moveTo(targetHex, hexMap);
         selectedShip->takeGoldFromCell(targetHex);
         addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
-    } else if (targetHex->getShip() && targetHex->getShip()->getOwner() != gl::Owner::FRIENDLY) {
+    } else if (targetHex->hasTroopOf<gl::Ship>() && isEnemy(targetHex->getTroopOf<gl::Ship>()->getOwner(), players[0])) {
         selectedShip->giveDamage(targetHex, hexMap);
-        if (targetHex->getShip()->isDestroyed())
+        if (targetHex->getTroopOf<gl::Ship>()->isDestroyed())
             std::cout << "Вражеский корабль уничтожен!\n";
     } else {
         std::cout << "Невозможно выполнить действие.\n";

@@ -1,6 +1,9 @@
 #include <SFML/Graphics.hpp>
+#include <unordered_set>
 #include "../game/GameLogic.h"
 #include "../game/troops/Ship.h"
+#include <sstream>
+
 
 namespace gl = GameLogic;
 
@@ -103,9 +106,9 @@ inline void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float
     resourceText.setStyle(sf::Text::Bold);
     
     std::string text;
-    if (hex.hasGold()) {
+    if (hex.hasItemOf<gl::Gold>()) {
         // text = std::to_string(hex.getGold()) + "G"; // Предполагая, что есть метод getGoldAmount()
-        text = std::to_string(hex.getGold()); // Предполагая, что есть метод getGoldAmount()
+        // text = std::to_string(hex.getItemOf<gl::Gold>()); // Предполагая, что есть метод getGoldAmount()
     } 
     // else if (hex.hasTreasure()) {
     //     text = std::to_string(hex.getGold()) + "T"; // Предполагая, что есть метод getTreasureAmount()
@@ -127,7 +130,7 @@ inline void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float
 }
 
 inline void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Ship* ship, std::vector<gl::Hex>& hexMap, gl::RangeMode mode){
-    std::vector<gl::Hex*> newCells = ship->cellsInRange(*ship->getCell(), hexMap, ship->getView(), mode);
+    std::vector<gl::Hex*> newCells = cellsInRange(*ship->getCell(), hexMap, ship->getView(), mode);
     std::unordered_set<gl::Hex*> uniqueSet(seenCells.begin(), seenCells.end());
     seenCells.reserve(seenCells.size() + newCells.size());
 

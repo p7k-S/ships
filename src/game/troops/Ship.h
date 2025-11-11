@@ -1,13 +1,19 @@
 #pragma once
 #include "../GameLogic.h"
 #include "../map/Cell.h"
+
 #include "../entity/Enemy.h"
 #include "../entity/Player.h"
 #include "../entity/Pirate.h"
 
+#include "../items/BaseItem.h"
+#include "BaseTroop.h"
+
+#include <iostream>
+
 namespace GameLogic {
 
-    class Ship {
+    class Ship : public Troop {
         private:
             Owner owner;
             uint8_t view;         // range(радиус) = 5
@@ -18,13 +24,13 @@ namespace GameLogic {
             uint16_t maxHealth;
             uint16_t gold;
             uint16_t maxGold;     // 1000
-            bool treasure;        // по дефолту максимум перевозка 1 сокровища
-            Hex* curCell;
+            std::unique_ptr<Item> item;         //only 1 allowed
+            // Hex* curCell;  в базовом классе
         public:
             // Конструктор
             Ship(Owner owner, Hex* currCell):
                 owner(owner),
-                curCell(currCell),
+                // curCell(currCell),
                 view(255),    // 4  2
                 move(4),    // 2  1
                 damage(50), // 30 20
@@ -33,12 +39,9 @@ namespace GameLogic {
                 maxHealth(100),
                 gold(200),
                 maxGold(1000),
-                treasure(false)
+                item(nullptr)
         {}
 
-            // Map
-            void setCell(Hex* cell) { curCell = cell; }
-            Hex* getCell() const { return curCell; }
 
             bool areNeighbors(Hex* h1, Hex* h2);
             
@@ -53,11 +56,12 @@ namespace GameLogic {
                 }
             }
             virtual void giveDamage(Hex* targetCell, std::vector<Hex>& hexMap) {
-                if (targetCell == curCell) return;
-                std::vector<Hex*> reachable = cellsInRange(*curCell, hexMap, curCell->getShip()->getDamageRange(), RangeMode::DAMAGE); // false=не радиус обзора
+                Hex* my_cell = getCell();
+                if (targetCell == my_cell) return;
+                std::vector<Hex*> reachable = cellsInRange(*my_cell, hexMap, my_cell->getTroopOf<Ship>()->getDamageRange(), RangeMode::DAMAGE); // false=не радиус обзора
 
                 if (std::find(reachable.begin(), reachable.end(), targetCell) != reachable.end()) {
-                    Ship* enemy = targetCell->getShip();
+                    Ship* enemy = targetCell->getTroopOf<Ship>();
                     enemy->takeDamage(damage);
                     if (enemy->isDestroyed()) {
                         uint16_t enemyGold = enemy->getGold(), tmp = getMaxGold() - getGold();
@@ -71,10 +75,11 @@ namespace GameLogic {
 
             bool isDestroyed() const { return health == 0; }
             void Destroy() {
-                if (curCell) {
-                    Hex* temp = curCell;
-                    curCell = nullptr;   // убираем ссылку на клетку
-                    temp->removeShip();  // клетка больше не знает о корабле
+                Hex* cell = getCell();
+                if (cell) {
+                    Hex* temp = cell;
+                    setCell(nullptr);   // убираем ссылку на клетку
+                    temp->removeTroop();  // клетка больше не знает о корабле
                 }
             }
 
@@ -84,15 +89,10 @@ namespace GameLogic {
             // Голда
             void addGoldToCell(Hex* cell, uint16_t amount) {
                 if (!cell) return;
-                if (cell->hasGold()) {
-                    uint16_t currentGold = cell->getGold();
-                    cell->setGold(currentGold + amount);
-                } else {
-                    if (amount) cell->setGold(amount);
-                }
+                cell->addStackable<Gold>(amount);
             }
             void takeGoldFromCell(Hex* cell) {
-                if (!cell || !cell->hasGold()) return;
+                if (!cell || !cell->hasItemOf<Gold>()) return;
                 uint16_t amount = maxGold - gold;
                 if (amount) {
                     gold += cell->giveGold(amount);
@@ -106,10 +106,28 @@ namespace GameLogic {
                 }
             } // сколько надо отдать
 
-            // Методы для сокровища
-            void takeTreasure() { treasure = true; }
-            void giveTreasure() { treasure = false; }
-            bool hasTreasure() const { return treasure; }
+            // Методы для предметов
+            Item* getItem() const { return item.get(); }
+
+            void takeItemByIndexFromCell(size_t index) {
+                if (item) {
+                    std::cout << "First remove item from ship\n";
+                    return;
+                }
+                item = getCell()->giveItemByIndex(index);
+            }
+
+            std::unique_ptr<Item> loseItem() {
+                return std::move(item);
+            }
+
+            void giveItemToCell(Hex* cell) {
+                if (item && cell) {
+                    // Вариант 1: Если addItem должен принимать unique_ptr
+                    cell->addItem(std::move(item));
+                    // После этого item станет nullptr
+                }
+            }
 
             Owner getOwner() const { return owner; }
             void setOwner(Owner newOwner) { owner = newOwner; }
@@ -121,29 +139,17 @@ namespace GameLogic {
             uint8_t getView() const { return view; }
             void setView(uint8_t range) { view = range; }
 
-            // move
-            bool canMoveTo(Hex* targetHex, std::vector<Hex>& hexMap) const {
-                if (!targetHex || !curCell) return false;
-                if (targetHex == curCell) return false;
-                if (targetHex->isLand() || targetHex->hasShip()) return false;
-
-                std::vector<Hex*> reachable = cellsInRange(*curCell, hexMap, curCell->getShip()->getMoveRange(), RangeMode::MOVE);
-                for (Hex* cell : reachable)
-                    if (cell == targetHex)
-                        return true;
-
-                return false;
-            }
-            void moveTo(Hex* targetHex, std::vector<Hex>& hexMap) {
-                if (!canMoveTo(targetHex, hexMap)) return;
-
-                if (curCell) curCell->setShip(nullptr);
-                curCell = targetHex;
-                targetHex->setShip(this);
-            }
-
             uint8_t getMoveRange() const { return move; }
             void setMoveRange(uint8_t range) { move = range; }
 
+
+            // move
+            void moveTo(Hex* targetHex, std::vector<Hex>& hexMap) {
+                if (!canMoveTo(targetHex, hexMap)) return;
+                Hex* my_cell = getCell();
+                if (my_cell) my_cell->removeTroop();
+                setCell(targetHex);
+                targetHex->setTroopOf<Ship>(*this); // Просто передаём ссылку
+            }
     };
 } //namespace GameLogic

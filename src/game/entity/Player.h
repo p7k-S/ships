@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <iostream>
 #include "BaseEntity.h"
+#include "../items/BaseItem.h"
 
 namespace GameLogic {
     // возможно несколько игроков
@@ -13,6 +14,7 @@ namespace GameLogic {
             std::string name;
             uint8_t playerId;
             std::vector<uint8_t> friendsId;
+            std::vector<std::unique_ptr<Item>> items;
             //stats
             // uint16_t kills;
             // float mapOpendPerc;

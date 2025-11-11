@@ -1,5 +1,5 @@
-#ifndef GAME_H
-#define GAME_H
+// #ifndef GAME_H
+// #define GAME_H
 
 #include <SFML/Graphics.hpp>
 #include <vector>
@@ -10,6 +10,7 @@
 #include "../game/map/PerlinNoise.h"
 #include "../game/map/Cell.h"
 #include "../game/troops/Ship.h"
+#include "../game/GameConfig.h"
 // #include "Renderer.h"
 // #include "InputHandler.h"
 
@@ -123,7 +124,15 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
 
 
     // // Игровые данные
-    std::vector<std::unique_ptr<gl::Ship>> ships;
+    gl::Enemy enemy;
+    gl::Pirate pirate;
+    std::vector<gl::Owner> bots = {&enemy, &pirate}; 
+
+    // это for надо по хорошему на старте как поставят
+    gl::Player player1{"Pasha", COLORS["green"]};
+    std::vector<gl::Owner> players = {&player1}; 
+
+    std::vector<std::shared_ptr<gl::Ship>> ships;
     std::vector<gl::Hex*> seenCells;
     std::vector<GameLogic::Hex*> vieweableHexes;
     sf::Font font;
@@ -149,6 +158,16 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     std::vector<gl::Hex*> waterHexes;
     std::vector<gl::Hex*> landHexes;
     std::vector<gl::Hex*> forestHexes;
+
+private:
+    bool isPlayerOwner(const gl::Owner& owner) const;
+    bool isEnemyOwner(const gl::Owner& owner) const;
+    bool isPirateOwner(const gl::Owner& owner) const;
+
+public:
+    gl::Player* getPlayer() const { return std::get<gl::Player*>(players[0]); }
+    gl::Enemy* getEnemy() const { return std::get<gl::Enemy*>(bots[0]); }
+    gl::Pirate* getPirate() const { return std::get<gl::Pirate*>(bots[1]); }
 };
 
-#endif
+// #endif

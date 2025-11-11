@@ -2,7 +2,10 @@
 #include "map/GenerateMap.h"
 #include "GameConfig.h"
 #include "../render/info_bars.h"
+#include "items/Gold.h"
+#include "items/Treasure.h"
 #include <algorithm>
+#include <iostream>
 #include <unordered_set>
 #include <random>
 // #include <iostream>
@@ -12,29 +15,29 @@ void Game::generateMap() {
     hexMap = createMap(perlin, mapWidth, mapHeight, octaves, scale);
 }
 
-HexBiome getBiomeWithSmoothing(double noiseValue, const BiomeThresholds& thresholds, 
-                              double transitionWidth = 0.05) {
-    // Плавные переходы между биомами
-    if (noiseValue < thresholds.deepWater - transitionWidth) 
-        return HexBiome::DEEP_WATER;
-    
-    if (noiseValue < thresholds.deepWater + transitionWidth) {
-        // Случайный выбор между глубокой водой и водой для плавного перехода
-        double blend = (noiseValue - (thresholds.deepWater - transitionWidth)) / (2 * transitionWidth);
-        return (random() < blend) ? HexBiome::WATER : HexBiome::DEEP_WATER;
-    }
-    
-    if (noiseValue < thresholds.water - transitionWidth) 
-        return HexBiome::WATER;
-    
-    if (noiseValue < thresholds.water + transitionWidth) {
-        double blend = (noiseValue - (thresholds.water - transitionWidth)) / (2 * transitionWidth);
-        return (random() < blend) ? HexBiome::LAND : HexBiome::WATER;
-    }
-    
-    // ... и так для остальных границ
-    return HexBiome::LAND;
-}
+// HexBiome getBiomeWithSmoothing(double noiseValue, const BiomeThresholds& thresholds, 
+//                               double transitionWidth = 0.05) {
+//     // Плавные переходы между биомами
+//     if (noiseValue < thresholds.deepWater - transitionWidth) 
+//         return HexBiome::DEEP_WATER;
+//
+//     if (noiseValue < thresholds.deepWater + transitionWidth) {
+//         // Случайный выбор между глубокой водой и водой для плавного перехода
+//         double blend = (noiseValue - (thresholds.deepWater - transitionWidth)) / (2 * transitionWidth);
+//         return (random() < blend) ? HexBiome::WATER : HexBiome::DEEP_WATER;
+//     }
+//
+//     if (noiseValue < thresholds.water - transitionWidth) 
+//         return HexBiome::WATER;
+//
+//     if (noiseValue < thresholds.water + transitionWidth) {
+//         double blend = (noiseValue - (thresholds.water - transitionWidth)) / (2 * transitionWidth);
+//         return (random() < blend) ? HexBiome::LAND : HexBiome::WATER;
+//     }
+//
+//     // ... и так для остальных границ
+//     return HexBiome::LAND;
+// }
 
 void Game::distributeCellTypes() {
     std::vector<double> noiseValues = getNoises(hexMap);
@@ -67,24 +70,26 @@ void Game::distributeCellTypes() {
     }
 }
 
+// ERROR
 void Game::createShips() {
     std::srand(std::time(nullptr));
     for (int i = 0; i < (waterHexes.size() + deepWaterHexes.size()) * percent_ships_in_water; ++i) {
-        gl::Owner owner = gl::Owner::PIRATE;
-        if (i == 0) owner = gl::Owner::PLAYER;
-        else if (i % 2) owner = gl::Owner::ENEMY;
+        gl::Owner owner = bots[0];
+        if (i == 0) owner = players[0];
+        else if (i % 2) owner = bots[1];
 
         int randomIndex = std::rand() % waterHexes.size();
         gl::Hex* startHex = waterHexes[randomIndex];
 
         bool exists = false;
+        std::cout << "lol3\n";
         for (const auto& ship : ships)
             if (ship->getCell() == startHex) { exists = true; break; }
 
         if (exists) { --i; continue; }
 
-        auto myShip = std::make_unique<gl::Ship>(owner, startHex);
-        startHex->setShip(myShip.get());
+        auto myShip = std::make_shared<gl::Ship>(owner, startHex);
+        startHex->setTroopOf<gl::Ship>(myShip);
         ships.push_back(std::move(myShip));
     }
 
@@ -98,16 +103,16 @@ void Game::placeGoldAndTreasures() {
 
     for (auto& hex : hexMap)
         if (chanceDist(gen) < gold_perc_in_map)
-            hex.setGold(goldDist(gen));
+            hex.addStackable<gl::Gold>(goldDist(gen));
 
-    int treasuresToPlace = treasures;
+    int treasuresToPlace = treasuresAmount;
     std::uniform_int_distribution<> indexDist(0, hexMap.size() - 1);
     std::unordered_set<int> used;
 
     while (treasuresToPlace > 0 && used.size() < hexMap.size()) {
         int i = indexDist(gen);
         if (used.insert(i).second) {
-            hexMap[i].setTreasure("nice");
+            hexMap[i].addItem<gl::Treasure>("nice");
             treasuresToPlace--;
         }
     }

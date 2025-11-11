@@ -3,7 +3,8 @@
 
 namespace GameLogic
 {
-    bool isEnemy(const Owner& p1, const Owner& p2) {
+    bool isEnemy(std::variant<Player*, Enemy*, Pirate*> p1, 
+                 std::variant<Player*, Enemy*, Pirate*> p2) {
         if (!std::holds_alternative<Player*>(p1) ||
             !std::holds_alternative<Player*>(p2)) {
             if (p1.index() == p2.index()) {
@@ -25,4 +26,4 @@ namespace GameLogic
 
         return true;
     }
-}; // namespace GameLogic
+} // namespace GameLogic
