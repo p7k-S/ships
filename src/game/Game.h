@@ -132,7 +132,7 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     gl::Player player1{"Pasha", COLORS["green"]};
     std::vector<gl::Owner> players = {&player1}; 
 
-    std::vector<std::shared_ptr<gl::Ship>> ships;
+    std::vector<gl::Ship*> ships;
     std::vector<gl::Hex*> seenCells;
     std::vector<GameLogic::Hex*> vieweableHexes;
     sf::Font font;

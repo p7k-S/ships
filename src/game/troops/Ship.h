@@ -144,12 +144,17 @@ namespace GameLogic {
 
 
             // move
+            // В классе Ship
             void moveTo(Hex* targetHex, std::vector<Hex>& hexMap) {
-                if (!canMoveTo(targetHex, hexMap)) return;
-                Hex* my_cell = getCell();
-                if (my_cell) my_cell->removeTroop();
+                if (!targetHex || !canMoveTo(targetHex, hexMap)) return;
+
+                Hex* currentCell = getCell();
+                if (currentCell) {
+                    currentCell->removeTroop();
+                }
+
                 setCell(targetHex);
-                targetHex->setTroopOf<Ship>(*this); // Просто передаём ссылку
+                targetHex->setTroopOf<Ship>(this); // ✅ this как Troop*
             }
     };
 } //namespace GameLogic

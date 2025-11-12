@@ -5,6 +5,8 @@
 #include <iostream>
 #include "BaseEntity.h"
 #include "../items/BaseItem.h"
+#include "../troops/BaseTroop.h"
+// #include "../buildings/BaseBuild.h"
 
 namespace GameLogic {
     // возможно несколько игроков
@@ -15,6 +17,8 @@ namespace GameLogic {
             uint8_t playerId;
             std::vector<uint8_t> friendsId;
             std::vector<std::unique_ptr<Item>> items;
+            std::vector<std::unique_ptr<Troop>> troops;
+            std::vector<std::unique_ptr<Building>> buildings;
             //stats
             // uint16_t kills;
             // float mapOpendPerc;

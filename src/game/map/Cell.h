@@ -2,6 +2,7 @@
 #include "../GameLogic.h"
 #include <any>
 #include <cmath>
+#include <cstdint>
 #include <memory>
 #include <variant>
 #include "../items/BaseItem.h"
@@ -14,9 +15,9 @@
 namespace GameLogic {
     class Hex {
         std::vector<std::unique_ptr<Item>> items;
-        std::vector<std::unique_ptr<Item>> resources;
         std::shared_ptr<Building> building;         //only 1 allowed
-        std::shared_ptr<Troop> troop;         //only 1 allowed
+        Troop* troop;
+        uint16_t gold;
         float noiseValue;
         CellType type;
     public:
@@ -117,56 +118,73 @@ namespace GameLogic {
         }
 
         // troops
-        template<typename T = Troop>
-            void setTroopOf(std::shared_ptr<T> existingTroop) {
+        template<typename T>
+            bool setTroopOf(T* troopPtr) {
                 static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
+
+                // 1. Проверяем, что клетка свободна
+                if (troop) {
+                    return false; // Уже есть troop
+                }
+
+                // 2. Проверяем совместимость с типом местности
                 if constexpr (std::is_same_v<T, Ship>) {
                     if (type >= CellType::LAND) {
-                        return;
+                        return false; // Корабль не может быть на суше
                     }
                 }
                 else if constexpr (std::is_same_v<T, Solder>) {
                     if (type <= CellType::WATER) {
-                        return;
+                        return false; // Солдат не может быть в воде
                     }
                 }
-                troop = std::move(existingTroop);
+
+                // 3. Всё ок - устанавливаем
+                troop = troopPtr;
+                return true; // ✅ Успех!
             }
 
-        template<typename T>
-            void setTroopOf(T& troopRef) {
-                static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
-                if constexpr (std::is_same_v<T, Ship>) {
-                    if (type >= CellType::LAND) {
-                        return;
-                    }
-                }
-                else if constexpr (std::is_same_v<T, Solder>) {
-                    if (type <= CellType::WATER) {
-                        return;
-                    }
-                }
-                troop = std::shared_ptr<Troop>(&troopRef); // Осторожно с управлением памятью!
-            }
+        // template<typename T>
+        //     void setTroopOf(T& troopRef) {
+        //         static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
+        //         if constexpr (std::is_same_v<T, Ship>) {
+        //             if (type >= CellType::LAND) {
+        //                 return;
+        //             }
+        //         }
+        //         else if constexpr (std::is_same_v<T, Solder>) {
+        //             if (type <= CellType::WATER) {
+        //                 return;
+        //             }
+        //         }
+        //         troop = std::shared_ptr<Troop>(&troopRef); // Осторожно с управлением памятью!
+        //     }
 
         bool hasTroop() const {
-            return troop ? 1 : 0;
+            return troop ? true : false;
         }
+
         template<typename T>
             bool hasTroopOf() const {
-                static_assert(std::is_base_of<Troop, T>::value, "T must derive from Troop");
-                return troop && dynamic_cast<T*>(troop.get()) != nullptr;
+                static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
+                return troop && dynamic_cast<const T*>(troop) != nullptr;
+                // было: troop.get() | стало: troop
             }
 
+        // ✅ Исправленный getTroopOf  
         template<typename T>
             T* getTroopOf() const {
-                static_assert(std::is_base_of<Troop, T>::value, "T must derive from Troop");
-                return troop ? dynamic_cast<T*>(troop.get()) : nullptr;
+                static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
+                return troop ? dynamic_cast<T*>(troop) : nullptr;
+                // было: troop.get() | стало: troop
             }
 
+        // ✅ Исправленный removeTroop
         void removeTroop() {
-            troop.reset();
+            troop = nullptr;
+            // было: troop.reset() | стало: troop = nullptr
         }
+
 
 
         // Noise
