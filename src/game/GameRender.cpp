@@ -25,9 +25,9 @@ void Game::render() {
         // UIRenderer::renderBottomBar(window, font, totalTurnCount);
     }
 
-    // 2️⃣ Основные компоненты рендеринга
+    // 2️⃣ Основные компоненты рендеринг
     renderMap();
-    renderShipRange();
+    renderShipRange(); // АААААААААЭЭЭЭЭЭЭЭЭЭЭЭЭЭУУУУУУУУУУУУУУУУУУУУУУУУУУУУ убрать
     renderPath();
     renderShipUI();
 
@@ -114,7 +114,7 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
     sf::ConvexShape hexShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
 
     // Определяем видимость и цветовую схему
-    bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(), &hex) != vieweableHexes.end();
+    bool isVisible = std::find(viewableHexes.begin(), viewableHexes.end(), &hex) != viewableHexes.end();
     auto currentScheme = isVisible ? colSchemeDefault : colSchemeInactive;
 
     hexShape.setFillColor(getColorByScheme(hex.getNoise(), currentScheme, deepWater, water, land));
@@ -241,14 +241,14 @@ void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sp
 void Game::renderShipUI() {
     for (const auto& hexp : seenCells) {
         const auto& hex = *hexp;
-        bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end();
+        bool isVisible = std::find(viewableHexes.begin(), viewableHexes.end(), hexp) != viewableHexes.end();
         
         if (hex.hasTroop() && isVisible) {
             double x_pos = hex.q * hexRadius * 1.5;
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             
             if (colSchemeDefault == COLORFULL) {
-                drawShipBar(window, dynamic_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+                drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
             }
         }
     }

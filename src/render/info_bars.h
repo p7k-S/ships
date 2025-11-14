@@ -106,10 +106,9 @@ inline void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float
     resourceText.setStyle(sf::Text::Bold);
     
     std::string text;
-    // if (hex.hasGold()) {
-        // text = std::to_string(hex.getGold()) + "G"; // Предполагая, что есть метод getGoldAmount()
-        // text = std::to_string(hex.getItemOf<gl::Gold>()); // Предполагая, что есть метод getGoldAmount()
-    // } 
+    if (hex.hasGold()) {
+        text = std::to_string(hex.getGold()) + "G"; // Предполагая, что есть метод getGoldAmount()
+    } 
     // else if (hex.hasTreasure()) {
     //     text = std::to_string(hex.getGold()) + "T"; // Предполагая, что есть метод getTreasureAmount()
     // }

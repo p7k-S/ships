@@ -25,7 +25,7 @@ void Game::cleanupDestroyedShips() {
 }
 
 void Game::updateVisibleCells() {
-    vieweableHexes.clear();
+    viewableHexes.clear();
     std::unordered_set<gl::Hex*> unique;
     for (auto& player : players) {
         const auto& playerTroops = player->getTroops();
@@ -33,7 +33,7 @@ void Game::updateVisibleCells() {
             if (auto* ship = static_cast<gl::Ship*>(troop.get())) {
                 for (auto* cell : cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW)) {
                     if (unique.insert(cell).second) {
-                        vieweableHexes.push_back(cell);
+                        viewableHexes.push_back(cell);
                     }
                 }
             }
@@ -52,6 +52,6 @@ void Game::resetSelection() {
 void Game::cleanup() {
     // ships.clear();
     seenCells.clear();
-    vieweableHexes.clear();
+    viewableHexes.clear();
     currentPath.clear();
 }

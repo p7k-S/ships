@@ -77,15 +77,12 @@ void Game::createPlayers() {
         std::cin >> name;
         std::cout << "Enter color for player " << i + 1 << ": ";
         std::cin >> color;
-        
-        // Создаем Player как Entity
+
         auto player = std::make_unique<gl::Player>(name, COLORS[color]);
         players.push_back(std::move(player));
     }
 }
 
-
-// ERROR
 void Game::createShips() {
     std::vector<gl::Hex*> waterCells;
     for (auto& hex : hexMap) {

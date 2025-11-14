@@ -16,9 +16,9 @@ namespace GameLogic {
     class Ship : public Troop {
         private:
             uint8_t view = 5;         // range(радиус) = 5
-            uint8_t move = 10;         // range(радиус) = 3
+            uint8_t move = 4;         // range(радиус) = 3
             uint16_t damage = 50;      // 35
-            uint16_t damageRange = 5; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
+            uint16_t damageRange = 3; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
             uint16_t health = 100;      // 100
             uint16_t maxHealth = 100;
             uint16_t gold = 0;

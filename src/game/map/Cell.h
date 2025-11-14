@@ -35,6 +35,9 @@ namespace GameLogic {
         bool hasGold() const {
             return gold ? true : false;
         }
+        bool getGold() const {
+            return gold;
+        }
         uint16_t giveGold(uint16_t amount) {
             uint16_t toTake = std::min(gold, amount);
             gold -= toTake;
