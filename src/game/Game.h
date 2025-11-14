@@ -133,7 +133,7 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     // это for надо по хорошему на старте как поставят
     // std::vector<gl::Ship*> ships;
     std::vector<gl::Hex*> seenCells;
-    std::vector<GameLogic::Hex*> vieweableHexes;
+    std::vector<gl::Hex*> vieweableHexes;
     sf::Font font;
 
     double deepWater;

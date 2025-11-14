@@ -10,32 +10,40 @@ namespace GameLogic {
         protected: 
             sf::Color color;
             std::string name;
-            std::vector<Troop*> troops;
-            std::vector<Item*> items;
-            std::vector<Building*> buildings;
-            // std::vector<std::unique_ptr<Troop>> troops;
-            // std::vector<std::unique_ptr<Item>> items;
-            // std::vector<std::unique_ptr<Building>> buildings;
+            // std::vector<Troop*> troops;
+            // std::vector<Item*> items;
+            // std::vector<Building*> buildings;
+            std::vector<std::unique_ptr<Troop>> troops;
+            std::vector<std::unique_ptr<Item>> items;
+            std::vector<std::unique_ptr<Building>> buildings;
 
         public:
             Entity(const std::string& NickName, sf::Color col) : name(NickName), color(col) {}
 
             sf::Color getColor() const { return color; }
 
-            const std::vector<Troop*>& getTroops() const { return troops; }
+            const std::vector<std::unique_ptr<Troop>>& getTroops() const {
+                return troops;
+            }
 
             void setColor(sf::Color& newColor) { color = newColor; }
 
-            void addTroop(Troop* troop) {
-                troops.push_back(troop);
+            void addTroop(std::unique_ptr<Troop> troop) {
+                troops.push_back(std::move(troop));
             }
 
+            // Удаление войска по указателю
             void removeTroop(Troop* troopToRemove) {
-                auto it = std::find(troops.begin(), troops.end(), troopToRemove);
+                auto it = std::find_if(troops.begin(), troops.end(),
+                        [troopToRemove](const std::unique_ptr<Troop>& troop) {
+                        return troop.get() == troopToRemove;
+                        });
+
                 if (it != troops.end()) {
                     troops.erase(it);
                 }
             }
+
 
             // void removeTroop(Troop* troopToRemove) {
             //     auto it = std::find_if(troops.begin(), troops.end(),

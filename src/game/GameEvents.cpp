@@ -1,6 +1,7 @@
 #include "Game.h"
 // #include "../render/Colors.hpp"
 #include "GameConfig.h"
+// #include <iostream>
 
 
 void Game::handleMouseButtonPressed(const sf::Event& event) {
@@ -93,17 +94,13 @@ void Game::handleKeyPressed(const sf::Event& event) {
     }
 
     if (event.key.code == sf::Keyboard::Enter) {
-        if (waitingForMove && selectedTroop && targetHex)
+        if (waitingForMove && selectedTroop && targetHex) {
             executeShipAction();
+        }
     }
 
     if (event.key.code == sf::Keyboard::F) {
         fullscreenMapMode = !fullscreenMapMode;
-        // if (fullscreenMapMode) {
-        //     mapView.setViewport({0.f, 0.f, 1.f, 1.f});
-        // } else {
-        //     mapView.setViewport(mapViewport);
-        // }
     }
 
     handleCameraControl(event);

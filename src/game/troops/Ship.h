@@ -15,7 +15,7 @@ namespace GameLogic {
 
     class Ship : public Troop {
         private:
-            uint8_t view = 30;         // range(радиус) = 5
+            uint8_t view = 5;         // range(радиус) = 5
             uint8_t move = 10;         // range(радиус) = 3
             uint16_t damage = 50;      // 35
             uint16_t damageRange = 5; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
@@ -58,8 +58,11 @@ namespace GameLogic {
                 // if (std::find(reachable.begin(), reachable.end(), targetCell) != reachable.end()) {
                     Troop* enemy = targetCell->getTroop();
                     enemy->takeDamage(damage);
-                    if (isDestroyed()) {
+                    if (enemy->isDestroyed()) {
                         lostResources(enemy);
+                        targetCell->removeTroop();
+
+
                         std::visit(
                             [enemy](auto* ownerPtr) {
                                 if (ownerPtr) {
@@ -68,7 +71,6 @@ namespace GameLogic {
                             }, 
                             enemy->getOwner()
                         );
-                        targetCell->removeTroop();
                     }
                 // }
             }

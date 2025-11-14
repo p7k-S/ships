@@ -45,8 +45,6 @@ void Game::executeShipAction() {
         addViewedCells(seenCells, selectedTroop, hexMap, gl::RangeMode::VIEW);
     } else if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())) {
         selectedTroop->giveDamage(targetHex);
-        if (targetHex->getTroop()->isDestroyed())
-            std::cout << "Вражеский корабль уничтожен!\n";
     } else {
         std::cout << "Невозможно выполнить действие.\n";
     }

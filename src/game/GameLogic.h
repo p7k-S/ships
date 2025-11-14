@@ -28,6 +28,9 @@ namespace GameLogic {
     class Gold;
     class Treasure;
 
+    class Building;
+    class Entity;
+
     // weather type
     enum class Weather {
         CALM,       // Штиль

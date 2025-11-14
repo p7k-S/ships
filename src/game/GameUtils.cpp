@@ -29,8 +29,8 @@ void Game::updateVisibleCells() {
     std::unordered_set<gl::Hex*> unique;
     for (auto& player : players) {
         const auto& playerTroops = player->getTroops();
-        for (auto* troop : playerTroops) {
-            if (auto* ship = dynamic_cast<gl::Ship*>(troop)) {
+        for (const auto& troop : playerTroops) {
+            if (auto* ship = static_cast<gl::Ship*>(troop.get())) {
                 for (auto* cell : cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW)) {
                     if (unique.insert(cell).second) {
                         vieweableHexes.push_back(cell);
