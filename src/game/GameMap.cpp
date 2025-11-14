@@ -2,7 +2,7 @@
 #include "map/GenerateMap.h"
 #include "GameConfig.h"
 #include "../render/info_bars.h"
-#include "items/Gold.h"
+// #include "items/Gold.h"
 #include "items/Treasure.h"
 #include <algorithm>
 #include <iostream>
@@ -54,47 +54,74 @@ void Game::distributeCellTypes() {
 
         if (value <= deepWater) {
             type = gl::CellType::DEEPWATER;
-            deepWaterHexes.push_back(&hex);
+            // deepWaterHexes.push_back(&hex);
         } else if (value <= water) {
             type = gl::CellType::WATER;
-            waterHexes.push_back(&hex);
+            // waterHexes.push_back(&hex);
         } else if (value <= land) {
             type = gl::CellType::LAND;
-            landHexes.push_back(&hex);
+            // landHexes.push_back(&hex);
         } else {
             type = gl::CellType::FOREST;
-            forestHexes.push_back(&hex);
+            // forestHexes.push_back(&hex);
         }
 
         hex.setCellType(type);
     }
 }
 
+void Game::createPlayers() {
+    for (uint8_t i = 0; i < playersAmount; ++i) {
+        std::string name, color;
+        std::cout << "Enter name for player " << i + 1 << ": ";
+        std::cin >> name;
+        std::cout << "Enter color for player " << i + 1 << ": ";
+        std::cin >> color;
+        
+        // Создаем Player как Entity
+        auto player = std::make_unique<gl::Player>(name, COLORS[color]);
+        players.push_back(std::move(player));
+    }
+}
+
+
 // ERROR
 void Game::createShips() {
-    std::srand(std::time(nullptr));
-    for (int i = 0; i < (waterHexes.size() + deepWaterHexes.size()) * percent_ships_in_water; ++i) {
-        gl::Owner owner = bots[0];
-        if (i == 0) owner = players[0];
-        else if (i % 2) owner = bots[1];
-
-        int randomIndex = std::rand() % waterHexes.size();
-        gl::Hex* startHex = waterHexes[randomIndex];
-
-        bool exists = false;
-        std::cout << "lol3\n";
-        for (const auto& ship : ships)
-            if (ship->getCell() == startHex) { exists = true; break; }
-
-        if (exists) { --i; continue; }
-
-        auto myShip = std::make_shared<gl::Ship>(owner, startHex);
-        startHex->setTroopOf<gl::Ship>(myShip);
-        ships.push_back(std::move(myShip));
+    std::vector<gl::Hex*> waterCells;
+    for (auto& hex : hexMap) {
+        if (hex.getCellType() == gl::CellType::WATER) {
+            waterCells.push_back(&hex);
+        }
     }
 
-    if (!ships.empty())
-        addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
+    std::random_device rd;
+    std::mt19937 g(rd());
+    std::shuffle(waterCells.begin(), waterCells.end(), g);
+
+    for (size_t i = 0; i < playersAmount; ++i) {
+        gl::Owner owner = players[i].get();
+        gl::Ship* ship = new gl::Ship(owner, waterCells[i]);
+
+        waterCells[i]->setTroopOf<gl::Ship>(ship);
+
+        addViewedCells(seenCells, ship, hexMap, gl::RangeMode::VIEW);
+
+        players[i]->addTroop(ship);
+    }
+
+    for (size_t i = playersAmount; i - playersAmount < sizeof(waterCells) * percent_ships_in_water; ++i) {
+        if (i % 2) {
+            gl::Owner owner = &pirate;
+            gl::Ship* ship = new gl::Ship(owner, waterCells[i]);
+            waterCells[i]->setTroopOf<gl::Ship>(ship);
+            pirate.addTroop(ship);
+        } else {
+            gl::Owner owner = &enemy;
+            gl::Ship* ship = new gl::Ship(owner, waterCells[i]);
+            waterCells[i]->setTroopOf<gl::Ship>(ship);
+            enemy.addTroop(ship);
+        }
+    }
 }
 
 void Game::placeGoldAndTreasures() {
@@ -103,7 +130,7 @@ void Game::placeGoldAndTreasures() {
 
     for (auto& hex : hexMap)
         if (chanceDist(gen) < gold_perc_in_map)
-            hex.addStackable<gl::Gold>(goldDist(gen));
+            hex.addGold(goldDist(gen));
 
     int treasuresToPlace = treasuresAmount;
     std::uniform_int_distribution<> indexDist(0, hexMap.size() - 1);

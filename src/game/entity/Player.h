@@ -12,13 +12,16 @@ namespace GameLogic {
     // возможно несколько игроков
     class Player : public Entity {
         private:
-            // sf::Color color; from Entity
-            std::string name;
             uint8_t playerId;
             std::vector<uint8_t> friendsId;
+            /* // есть у каждой сущности
+            sf::Color color; from Entity
+            std::string name;
             std::vector<std::unique_ptr<Item>> items;
             std::vector<std::unique_ptr<Troop>> troops;
             std::vector<std::unique_ptr<Building>> buildings;
+            */
+            
             //stats
             // uint16_t kills;
             // float mapOpendPerc;
@@ -33,7 +36,7 @@ namespace GameLogic {
 
         public:
             Player(const std::string& name, sf::Color color) 
-                : Entity(color), name(name), playerId(generateId()) {}
+                : Entity(name, color), playerId(generateId()) {}
 
             // GETTERS
             // --- sf::Color getColor() const { return color; } from Entity
@@ -58,5 +61,12 @@ namespace GameLogic {
                     std::cout << "friend " << friendId << " not found\n";
                 }
             }
+            
+            // ADD TROOPS
+            // ✅ Создание и добавление через внешний фабричный метод
+            // template<typename T, typename... Args>
+            //     void addTroop(Args&&... args) {
+            //         troops.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+            //     }
     };
 }; // namespace GameLogic

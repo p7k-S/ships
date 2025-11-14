@@ -4,6 +4,6 @@
 namespace GameLogic {
     class Enemy : public Entity {
         public:
-            Enemy() : Entity(COLORS["enemy"]) {}
+            Enemy(const std::string& NickName) : Entity(NickName, COLORS["enemy"]) {}
     };
 }; // namespace GameLogic

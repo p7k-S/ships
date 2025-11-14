@@ -15,23 +15,32 @@
 namespace GameLogic {
     class Hex {
         std::vector<std::unique_ptr<Item>> items;
-        std::shared_ptr<Building> building;         //only 1 allowed
-        Troop* troop;
-        uint16_t gold;
+        Building* building = nullptr;
+        Troop* troop = nullptr;
+        uint16_t gold = 0;
         float noiseValue;
         CellType type;
     public:
         int q, r;
 
-        // Hex(const Hex&) = delete;
-        // Hex& operator=(const Hex&) = delete;
-        // Hex(Hex&&) = default;
-        // Hex& operator=(Hex&&) = default;
+        Hex(int q, int r) : q(q), r(r) {}
+        Hex(int q, int r, double noise) : q(q), r(r), noiseValue(noise) {}
+        Hex(int q, int r, CellType t) : q(q), r(r), type(t) {}
 
 
-        Hex(int q, int r) : q(q), r(r), troop(nullptr) {}
-        Hex(int q, int r, double noise) : q(q), r(r), noiseValue(noise), troop(nullptr) {}
-        Hex(int q, int r, CellType t) : q(q), r(r), type(t), troop(nullptr) {}
+        // GOLD
+        void addGold(uint16_t amount) {
+            gold += amount;
+        }
+        bool hasGold() const {
+            return gold ? true : false;
+        }
+        uint16_t giveGold(uint16_t amount) {
+            uint16_t toTake = std::min(gold, amount);
+            gold -= toTake;
+            return toTake;
+        }
+
 
 
         // items
@@ -53,21 +62,22 @@ namespace GameLogic {
                 return item != nullptr;
             }
 
-         template<typename T, typename... Args>
-            void addStackable(Args&&... args) {
-                static_assert(std::is_base_of<Item, T>::value, "T must derive from Item");
+         // template<typename T, typename... Args>
+         //    void addStackable(Args&&... args) {
+         //        static_assert(std::is_base_of<Item, T>::value, "T must derive from Item");
+         //
+         //        if constexpr (sizeof...(Args) == 1) {
+         //            if (T* existingItem = getItemOf<T>()) {
+         //                uint16_t amount = static_cast<uint16_t>(std::get<0>(std::make_tuple(args...)));
+         //                existingItem->addItemAmount(amount);
+         //                return;
+         //            }
+         //        }
+         //
+         //        items.push_back(std::make_unique<T>(std::forward<Args>(args)...));
+         //    }
 
-                if constexpr (sizeof...(Args) == 1) {
-                    if (T* existingItem = getItemOf<T>()) {
-                        uint16_t amount = static_cast<uint16_t>(std::get<0>(std::make_tuple(args...)));
-                        existingItem->addItemAmount(amount);
-                        return;
-                    }
-                }
-
-                items.push_back(std::make_unique<T>(std::forward<Args>(args)...));
-            }
-
+        // Items
          template<typename T, typename... Args>
              void addItem(Args&&... args) {
                  static_assert(std::is_base_of_v<Item, T>, "T must derive from Item");
@@ -81,37 +91,12 @@ namespace GameLogic {
                  }
              }
 
-
-
-        uint16_t giveGold(uint16_t amount) {
-            for (auto it = items.begin(); it != items.end(); ++it) {
-                if (Gold* gold = dynamic_cast<Gold*>(it->get())) {
-                    uint16_t currentAmount = gold->getItemAmount();
-                    uint16_t toTake = std::min(currentAmount, amount);
-
-                    if (toTake > 0) {
-                        uint16_t newAmount = currentAmount - toTake;
-                        gold->setItemAmount(newAmount);
-
-                        if (newAmount == 0) {
-                            items.erase(it);
-                        }
-
-                        return toTake;
-                    }
-                }
-            }
-            return 0;
-        }
-
         std::unique_ptr<Item> giveItemByIndex(size_t index) {
             static_assert(!std::is_same_v<Item, Gold>, "Use giveGold() for Gold items");
-            // Проверка валидности индекса
             if (index >= items.size()) {
                 return nullptr;
             }
 
-            // Освобождаем владение и возвращаем unique_ptr
             std::unique_ptr<Item> result = std::move(items[index]);
             items.erase(items.begin() + index);
             return result;
@@ -122,68 +107,43 @@ namespace GameLogic {
             bool setTroopOf(T* troopPtr) {
                 static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
 
-                // 1. Проверяем, что клетка свободна
-                if (troop) {
-                    return false; // Уже есть troop
-                }
+                if (troop) { return false; }
 
-                // 2. Проверяем совместимость с типом местности
                 if constexpr (std::is_same_v<T, Ship>) {
                     if (type >= CellType::LAND) {
-                        return false; // Корабль не может быть на суше
+                        return false;
                     }
                 }
                 else if constexpr (std::is_same_v<T, Solder>) {
                     if (type <= CellType::WATER) {
-                        return false; // Солдат не может быть в воде
+                        return false;
                     }
                 }
 
-                // 3. Всё ок - устанавливаем
                 troop = troopPtr;
-                return true; // ✅ Успех!
+                return true;
             }
+
+        bool hasTroop() const { return troop ? true : false; }
+        Troop* getTroop() const { return hasTroop() ? troop : nullptr; }
+        void removeTroop() { troop = nullptr; }
 
         // template<typename T>
-        //     void setTroopOf(T& troopRef) {
+        //     bool hasTroopOf() const {
         //         static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
-        //         if constexpr (std::is_same_v<T, Ship>) {
-        //             if (type >= CellType::LAND) {
-        //                 return;
-        //             }
-        //         }
-        //         else if constexpr (std::is_same_v<T, Solder>) {
-        //             if (type <= CellType::WATER) {
-        //                 return;
-        //             }
-        //         }
-        //         troop = std::shared_ptr<Troop>(&troopRef); // Осторожно с управлением памятью!
+        //         return troop && dynamic_cast<const T*>(troop) != nullptr;
+        //         // было: troop.get() | стало: troop
         //     }
 
-        bool hasTroop() const {
-            return troop ? true : false;
-        }
-
-        template<typename T>
-            bool hasTroopOf() const {
-                static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
-                return troop && dynamic_cast<const T*>(troop) != nullptr;
-                // было: troop.get() | стало: troop
-            }
-
         // ✅ Исправленный getTroopOf  
-        template<typename T>
-            T* getTroopOf() const {
-                static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
-                return troop ? dynamic_cast<T*>(troop) : nullptr;
-                // было: troop.get() | стало: troop
-            }
+        // template<typename T>
+        //     T* getTroopOf() const {
+        //         static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
+        //         return troop ? dynamic_cast<T*>(troop) : nullptr;
+        //         // было: troop.get() | стало: troop
+        //     }
 
         // ✅ Исправленный removeTroop
-        void removeTroop() {
-            troop = nullptr;
-            // было: troop.reset() | стало: troop = nullptr
-        }
 
 
 
@@ -201,6 +161,5 @@ namespace GameLogic {
         bool operator==(const Hex& other) const {
             return q == other.q && r == other.r;
         }
-
     };
 } // namespace GameLogic

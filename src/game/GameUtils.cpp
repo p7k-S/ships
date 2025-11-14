@@ -2,7 +2,7 @@
 #include "GameConfig.h"
 #include <cmath>
 #include <unordered_set>
-#include <memory> // для std::shared_ptr
+// #include <memory> // для std::shared_ptr
 
 
 bool Game::isPointInHex(const sf::Vector2f& point, const gl::Hex& hex) {
@@ -14,36 +14,43 @@ bool Game::isPointInHex(const sf::Vector2f& point, const gl::Hex& hex) {
 }
 
 void Game::cleanupDestroyedShips() {
-    for (auto& ship : ships)
-        if (ship->isDestroyed())
-            ship->Destroy();
-
-    ships.erase(
-        std::remove_if(ships.begin(), ships.end(),
-            [](const std::shared_ptr<gl::Ship>& s) { return s->isDestroyed(); }),
-        ships.end());
+    // for (auto& ship : ships)
+    //     if (ship->isDestroyed())
+    //         ship->Destroy();
+    //
+    // ships.erase(
+    //     std::remove_if(ships.begin(), ships.end(),
+    //         [](const std::shared_ptr<gl::Ship>& s) { return s->isDestroyed(); }),
+    //     ships.end());
 }
 
 void Game::updateVisibleCells() {
     vieweableHexes.clear();
     std::unordered_set<gl::Hex*> unique;
-    for (auto& ship : ships)
-        if (isPlayerOwner(ship->getOwner()))
-            for (auto* cell : cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW))
-                if (unique.insert(cell).second)
-                    vieweableHexes.push_back(cell);
+    for (auto& player : players) {
+        const auto& playerTroops = player->getTroops();
+        for (auto* troop : playerTroops) {
+            if (auto* ship = dynamic_cast<gl::Ship*>(troop)) {
+                for (auto* cell : cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW)) {
+                    if (unique.insert(cell).second) {
+                        vieweableHexes.push_back(cell);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void Game::resetSelection() {
     waitingForMove = false;
-    selectedShip = nullptr;
+    selectedTroop = nullptr;
     selectedHex = nullptr;
     targetHex = nullptr;
     currentPath.clear();
 }
 
 void Game::cleanup() {
-    ships.clear();
+    // ships.clear();
     seenCells.clear();
     vieweableHexes.clear();
     currentPath.clear();

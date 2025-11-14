@@ -2,7 +2,7 @@
 #include "GameLogic.h"
 #include "../render/info_bars.h"
 #include "../game/entity/Player.h"
-#include "../game/troops/Ship.h"
+// #include "../game/troops/Ship.h"
 #include "../game/map/Cell.h"
 // #include "../game/troops/BaseTroop.h"
 #include <iostream>
@@ -10,15 +10,15 @@
 void Game::handleShipSelection(const sf::Vector2f& worldPos) {
     for (auto& hex : hexMap) {
         if (isPointInHex(worldPos, hex)) {
-            if (hex.getTroopOf<gl::Ship>() && std::holds_alternative<gl::Player*>(hex.getTroopOf<gl::Ship>()->getOwner())) {
-                selectedShip = hex.getTroopOf<gl::Ship>();
+            if (hex.hasTroop() && std::holds_alternative<gl::Player*>(hex.getTroop()->getOwner())) {
+                selectedTroop = hex.getTroop();
                 waitingForMove = true;
                 targetHex = nullptr;
                 currentPath.clear();
                 std::cout << "Корабль выбран.\n";
             } else {
                 selectedHex = &hex;
-                selectedShip = nullptr;
+                selectedTroop = nullptr;
                 waitingForMove = false;
             }
             break;
@@ -37,15 +37,15 @@ void Game::handleTargetSelection(const sf::Vector2f& worldPos) {
 }
 
 void Game::executeShipAction() {
-    if (!selectedShip || !targetHex) return;
+    if (!selectedTroop || !targetHex) return;
 
-    if (selectedShip->canMoveTo(targetHex, hexMap)) {
-        selectedShip->moveTo(targetHex, hexMap);
-        selectedShip->takeGoldFromCell(targetHex);
-        addViewedCells(seenCells, &*ships[0], hexMap, gl::RangeMode::VIEW);
-    } else if (targetHex->hasTroopOf<gl::Ship>() && isEnemy(targetHex->getTroopOf<gl::Ship>()->getOwner(), players[0])) {
-        selectedShip->giveDamage(targetHex, hexMap);
-        if (targetHex->getTroopOf<gl::Ship>()->isDestroyed())
+    if (selectedTroop->canMoveTo(targetHex)) {
+        selectedTroop->moveTo(targetHex);
+        selectedTroop->takeGoldFromCell(targetHex);
+        addViewedCells(seenCells, selectedTroop, hexMap, gl::RangeMode::VIEW);
+    } else if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())) {
+        selectedTroop->giveDamage(targetHex);
+        if (targetHex->getTroop()->isDestroyed())
             std::cout << "Вражеский корабль уничтожен!\n";
     } else {
         std::cout << "Невозможно выполнить действие.\n";

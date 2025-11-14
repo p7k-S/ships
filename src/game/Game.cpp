@@ -21,17 +21,15 @@ void Game::update() {
     updateVisibleCells();
 }
 
-bool Game::isPlayerOwner(const gl::Owner& owner) const {
-    return std::holds_alternative<gl::Player*>(owner) && 
-           std::get<gl::Player*>(owner) == getPlayer();
+bool Game::isPlayerOwner(const GameLogic::Owner& owner) const {
+    return std::holds_alternative<gl::Player*>(owner);
 }
 
-bool Game::isEnemyOwner(const gl::Owner& owner) const {
-    return std::holds_alternative<gl::Enemy*>(owner) && 
-           std::get<gl::Enemy*>(owner) == getEnemy();
+bool Game::isEnemyOwner(const GameLogic::Owner& owner) const {
+    return std::holds_alternative<gl::Enemy*>(owner);
 }
 
-bool Game::isPirateOwner(const gl::Owner& owner) const {
-    return std::holds_alternative<gl::Pirate*>(owner) && 
-           std::get<gl::Pirate*>(owner) == getPirate();
+bool Game::isPirateOwner(const GameLogic::Owner& owner) const {
+    return std::holds_alternative<gl::Pirate*>(owner);
 }
+

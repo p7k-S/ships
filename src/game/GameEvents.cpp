@@ -10,7 +10,7 @@ void Game::handleMouseButtonPressed(const sf::Event& event) {
         
         sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
         
-        if (waitingForMove && selectedShip) {
+        if (waitingForMove && selectedTroop) {
             handleTargetSelection(worldPos);
         } else {
             handleShipSelection(worldPos);
@@ -93,7 +93,7 @@ void Game::handleKeyPressed(const sf::Event& event) {
     }
 
     if (event.key.code == sf::Keyboard::Enter) {
-        if (waitingForMove && selectedShip && targetHex)
+        if (waitingForMove && selectedTroop && targetHex)
             executeShipAction();
     }
 

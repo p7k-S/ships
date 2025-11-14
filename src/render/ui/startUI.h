@@ -11,7 +11,7 @@ private:
     int selectedParam = 0;
     std::vector<std::string> paramNames = {
         "Map Width", "Map Height", "Scale", "Persistance", 
-        "Seed", "Octaves", "Random Map", "Unknown Map"
+        "Seed", "Octaves", "Random Map", "Unknown Map", "Players amount"
     };
     
 public:
@@ -99,6 +99,10 @@ private:
             case 7: // Unknown Map
                 unknown_map = !unknown_map;
                 break;
+            case 8: // Players amount
+                playersAmount = std::max(1, playersAmount + direction);
+                playersAmount = std::min(playersAmount, static_cast<uint8_t>(4)); // Ограничение до 4 игроков
+                break;
             default:
                 break;
         }
@@ -114,6 +118,7 @@ private:
             case 5: return std::to_string(octaves);
             case 6: return random_map ? "Yes" : "No";
             case 7: return unknown_map ? "Yes" : "No";
+            case 8: return std::to_string(static_cast<int>(playersAmount)); // Явное приведение к int
             default: return "";
         }
     }
@@ -170,8 +175,8 @@ private:
                 valueText.setStyle(sf::Text::Bold);
             }
             
-            // Для bool параметров добавляем стрелки
-            if ((i == 6 || i == 7) && i == selectedParam) {
+            // Для bool параметров и players amount добавляем стрелки
+            if ((i == 6 || i == 7 || i == 8) && i == selectedParam) {
                 valueText.setString("< " + getParamValue(i) + " >");
             }
             

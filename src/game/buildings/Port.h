@@ -1,6 +1,4 @@
 #pragma once
-#include "../GameLogic.h"
-#include "../map/Cell.h"
 #include "BaseBuild.h"
 
 
@@ -9,9 +7,8 @@
 // и тд
 
 namespace GameLogic {
-    class Port : Building {
+    class Port : public Building {
         private:
-            Owner owner;
             uint8_t view;         // range(радиус) = 5
             // uint16_t damage;      // 35
             // uint16_t damageRange; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем veiw
@@ -21,33 +18,27 @@ namespace GameLogic {
             uint16_t gold;
             uint16_t maxGold;     // 1000
             uint8_t spawnRate;      // кол-во ходов на spawn
-            Hex* curCell;
         public:
             Port(Owner owner, Hex* currCell):
-                owner(owner),
+                Building(owner, currCell),
                 view(5),
                 heal(70),
                 health(1000),
                 maxHealth(1000),
                 gold(0),
                 maxGold(5000),
-                spawnRate(12),
-                curCell(currCell)
+                spawnRate(12)
         {}
 
         // Геттеры
-        Owner getOwner() const { return owner; }
         uint8_t getView() const { return view; }
         uint16_t getHealth() const { return health; }
         uint16_t getMaxHealth() const { return maxHealth; }
         uint16_t getGold() const { return gold; }
         uint16_t getMaxGold() const { return maxGold; }
         uint8_t getSpawnRate() const { return spawnRate; }
-        Hex* getCurCell() const { return curCell; }
-        const Hex* getCurCellConst() const { return curCell; }
 
         // Сеттеры с проверками
-        void setOwner(Owner newOwner) { owner = newOwner; }
 
         void setView(uint8_t newView) { view = newView; }
 
@@ -74,12 +65,6 @@ namespace GameLogic {
         void setSpawnRate(uint8_t newSpawnRate) { 
             if (newSpawnRate > 0) {
                 spawnRate = newSpawnRate;
-            }
-        }
-
-        void setCurCell(Hex* newCell) { 
-            if (newCell != nullptr) {
-                curCell = newCell;
             }
         }
 
@@ -121,9 +106,9 @@ namespace GameLogic {
         }
 
         // Методы для работы с сокровищами
-        bool addTreasure() { 
-            // плееру добавить
-        }
+        // bool addTreasure() { 
+        //     // playerу добавить
+        // }
 
         // Метод для уменьшения счетчика спавна
         bool decrementSpawnRate() { 

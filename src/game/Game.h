@@ -41,6 +41,7 @@ private:
     void generateMap();
     void distributeCellTypes();
     void createShips();
+    void createPlayers();
     void placeGoldAndTreasures();
     
     // Обработка ввода
@@ -69,7 +70,7 @@ private:
     std::vector<sf::Sprite> shipSprites;
 
     sf::RenderTexture mapSeenLayer;
-std::size_t cachedSeenCount = 0;
+    std::size_t cachedSeenCount = 0;
 
 // Новые методы
 void rebuildSeenMapLayer();
@@ -123,16 +124,14 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     sf::Texture treasure_texture;
 
 
-    // // Игровые данные
-    gl::Enemy enemy;
-    gl::Pirate pirate;
-    std::vector<gl::Owner> bots = {&enemy, &pirate}; 
+    // Все игроки и игровые сущности
+    std::vector<std::unique_ptr<gl::Player>> players;
+    gl::Enemy enemy{"Enemy"};
+    gl::Pirate pirate{"Pirate"};
+
 
     // это for надо по хорошему на старте как поставят
-    gl::Player player1{"Pasha", COLORS["green"]};
-    std::vector<gl::Owner> players = {&player1}; 
-
-    std::vector<gl::Ship*> ships;
+    // std::vector<gl::Ship*> ships;
     std::vector<gl::Hex*> seenCells;
     std::vector<GameLogic::Hex*> vieweableHexes;
     sf::Font font;
@@ -146,7 +145,7 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
 
     // Состояние игры
     gl::Hex* selectedHex = nullptr;
-    gl::Ship* selectedShip = nullptr;
+    gl::Troop* selectedTroop = nullptr;
     bool waitingForMove = false;
     bool isDragging = false;
     sf::Vector2f lastMousePos;
@@ -154,10 +153,10 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     gl::Hex* targetHex = nullptr;
 
     // Вспомогательные контейнеры
-    std::vector<gl::Hex*> deepWaterHexes;
-    std::vector<gl::Hex*> waterHexes;
-    std::vector<gl::Hex*> landHexes;
-    std::vector<gl::Hex*> forestHexes;
+    // std::vector<gl::Hex*> deepWaterHexes;
+    // std::vector<gl::Hex*> waterHexes;
+    // std::vector<gl::Hex*> landHexes;
+    // std::vector<gl::Hex*> forestHexes;
 
 private:
     bool isPlayerOwner(const gl::Owner& owner) const;
@@ -165,9 +164,16 @@ private:
     bool isPirateOwner(const gl::Owner& owner) const;
 
 public:
-    gl::Player* getPlayer() const { return std::get<gl::Player*>(players[0]); }
-    gl::Enemy* getEnemy() const { return std::get<gl::Enemy*>(bots[0]); }
-    gl::Pirate* getPirate() const { return std::get<gl::Pirate*>(bots[1]); }
+    gl::Player* getPlayer() const { 
+        return players[0].get();  // .get() для unique_ptr
+    }
+    gl::Enemy* getEnemy() { 
+        return &enemy;  // Берем адрес объекта
+    }
+
+    gl::Pirate* getPirate() { 
+        return &pirate; // Берем адрес объекта
+    }
 };
 
 // #endif

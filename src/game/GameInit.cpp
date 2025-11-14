@@ -23,6 +23,7 @@ bool Game::initialize() {
 
     generateMap();
     distributeCellTypes();
+    createPlayers();
     createShips();
     placeGoldAndTreasures();
 

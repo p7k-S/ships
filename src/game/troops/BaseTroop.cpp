@@ -3,7 +3,7 @@
 #include "../map/Cell.h"
 
 namespace GameLogic {
-    Troop::Troop() : curCell(nullptr) {}
+    // Troop::Troop() : curCell(nullptr) {}
 
     // Реализация виртуальных методов
     uint8_t Troop::getView() const { 
@@ -18,21 +18,22 @@ namespace GameLogic {
         return 0; 
     }
 
-        bool Troop::canMoveTo(Hex* targetHex, std::vector<Hex>& hexMap) const { // нгужно ???
+    // проверяется в отрисовке
+        bool Troop::canMoveTo(Hex* targetHex) const { // нгужно ???
             Hex* my_cell = getCell();
             if (!targetHex || !my_cell) return false;
             if (targetHex == my_cell) return false;
             if (targetHex->hasTroop()) return false;
 
-            std::vector<Hex*> reachable = cellsInRange(*my_cell, hexMap, getMoveRange(), RangeMode::MOVE);
-            for (Hex* cell : reachable)
-                if (cell == targetHex)
+            // std::vector<Hex*> reachable = cellsInRange(*my_cell, hexMap, getMoveRange(), RangeMode::MOVE);
+            // for (Hex* cell : reachable)
+                // if (cell == targetHex)
                     return true;
 
-            return false;
+            // return false;
         }
 
-        void Troop::moveTo(Hex* targetHex, std::vector<Hex>& hexMap) {
+        void Troop::moveTo(Hex* targetHex) {
             // Базовая реализация
             if (curCell) {
                 curCell = targetHex;

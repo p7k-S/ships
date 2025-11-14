@@ -125,14 +125,14 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
     sf::Sprite goldSprite, shipSprite;
     bool hasGold = false;
     bool hasTreasure = false;
-    bool hasShip = false;
+    bool hasTroop = false;
     
     if (isVisible) {
-        hasShip = hex.hasTroopOf<gl::Ship>();
+        hasTroop = hex.hasTroop();
         hasTreasure = hex.hasItemOf<gl::Treasure>();
-        hasGold = hex.hasItemOf<gl::Gold>();
+        hasGold = hex.hasGold();
         
-        if (hasShip) {
+        if (hasTroop) {
             renderShipOnHex(hex, hexShape, shipSprite);
         } else if (hasTreasure) {
             goldSprite.setTexture(treasure_texture);
@@ -144,13 +144,13 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
         if (hasTreasure || hasGold) {
             normlaizeSprite(goldSprite, hexRadius, x_pos, y_pos);
         }
-        if (hasShip) {
+        if (hasTroop) {
             normlaizeSprite(shipSprite, hexRadius, x_pos, y_pos);
         }
     }
 
     // Выделение выбранного гекса
-    if (!selectedShip && selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
+    if (!selectedTroop && selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
         hexShape.setOutlineColor(COLORS["deep_yellow"]);
         hexShape.setOutlineThickness(2);
     }
@@ -166,27 +166,27 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
         drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, font, font_size);
     }
     
-    if (hasShip) {
+    if (hasTroop) {
         window.draw(shipSprite);
     }
 }
 
 void Game::renderShipRange() {
-    if (!selectedShip) return;
+    if (!selectedTroop) return;
     
-    gl::Hex* selectedHex = selectedShip->getCell();
+    gl::Hex* selectedHex = selectedTroop->getCell();
     if (!selectedHex) return;
 
     // Диапазон перемещения
     std::vector<gl::Hex*> reachableHexes = cellsInRange(
-        *selectedHex, hexMap, selectedShip->getMoveRange(), gl::RangeMode::MOVE);
+        *selectedHex, hexMap, selectedTroop->getMoveRange(), gl::RangeMode::MOVE);
     for (gl::Hex* reachableHex : reachableHexes) {
         renderRangeHex(reachableHex, sf::Color(100, 255, 100, 80), sf::Color(112, 129, 88, 255));
     }
 
     // Диапазон атаки
     std::vector<gl::Hex*> attackRangeHexes = cellsInRange(
-        *selectedHex, hexMap, selectedShip->getDamageRange(), gl::RangeMode::DAMAGE);
+        *selectedHex, hexMap, selectedTroop->getDamageRange(), gl::RangeMode::DAMAGE);
     for (gl::Hex* attackHex : attackRangeHexes) {
         renderRangeHex(attackHex, sf::Color(200, 40, 40, 50), sf::Color::Transparent);
     }
@@ -204,7 +204,7 @@ void Game::renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineCo
 }
 
 void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite) {
-    auto* ship = hex.getTroopOf<gl::Ship>();
+    auto* ship = hex.getTroop();
     if (!ship) return;
     auto shipOwner = ship->getOwner();
 
@@ -243,12 +243,12 @@ void Game::renderShipUI() {
         const auto& hex = *hexp;
         bool isVisible = std::find(vieweableHexes.begin(), vieweableHexes.end(), hexp) != vieweableHexes.end();
         
-        if (hex.hasTroopOf<gl::Ship>() && isVisible) {
+        if (hex.hasTroop() && isVisible) {
             double x_pos = hex.q * hexRadius * 1.5;
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             
             if (colSchemeDefault == COLORFULL) {
-                drawShipBar(window, hex.getTroopOf<gl::Ship>(), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+                drawShipBar(window, dynamic_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
             }
         }
     }
