@@ -22,8 +22,8 @@ void Game::render() {
     if (fullscreenMapMode) {
         window.setView(mapView);
     } else {
-        UIRenderer::renderSidebar(window, font, "lolo");
-        UIRenderer::renderBottomBar(window, font, totalTurnCount);
+        // UIRenderer::renderSidebar(window, font, "lolo");
+        // UIRenderer::renderBottomBar(window, font, totalTurnCount);
         // renderCellInfoPanel();
         // renderBottomStatsBar();
     }
@@ -208,36 +208,28 @@ void Game::renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineCo
 }
 
 void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite) {
-    auto* ship = hex.getTroop();
-    if (!ship) return;
-    auto shipOwner = ship->getOwner();
+    auto* troop = hex.getTroop();
+    if (!troop) return;
+    auto troopOwner = troop->getOwner();
 
-    if (isPlayerOwner(shipOwner)) {
+    if (isPlayerOwner(troopOwner)) {
         shipSprite.setTexture(player_ship_texture);
-        hexShape.setOutlineColor(sf::Color::Green);
-    } else if (isEnemyOwner(shipOwner)) {
+        hexShape.setOutlineColor(std::get<GameLogic::Player*>(troopOwner)->getColor());
+    } else if (isEnemyOwner(troopOwner)) {
         shipSprite.setTexture(enemy_ship_texture);
         hexShape.setOutlineColor(COLORS["burgundy"]);
-    } else if (isPirateOwner(shipOwner)) {
+    } else if (isPirateOwner(troopOwner)) {
         shipSprite.setTexture(pirate_ship_texture);
         hexShape.setOutlineColor(sf::Color::Black);
     }
-
-        // case gl::Owner::FRIENDLY:
-        //     hexShape.setOutlineColor(sf::Color::White);
-        //     break;
-    // }
     
     if (colSchemeDefault == INVERT) {
-        if (isPirateOwner(shipOwner)) {
+        if (isPirateOwner(troopOwner)) {
                     hexShape.setFillColor(COLORS["very_dark_gray"]);
-        } else if (isEnemyOwner(shipOwner)) {
+        } else if (isEnemyOwner(troopOwner)) {
                     hexShape.setFillColor(COLORS["burgundy"]);
-        } else if (isPlayerOwner(shipOwner)) {
-                    hexShape.setFillColor(players[p_id]->getColor());
-                // case gl::Owner::FRIENDLY:
-                //     hexShape.setFillColor(sf::Color::White);
-                //     break;
+        } else if (isPlayerOwner(troopOwner)) {
+                    hexShape.setFillColor(std::get<GameLogic::Player*>(troopOwner)->getColor());
         }
     }
 }

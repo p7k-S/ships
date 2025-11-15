@@ -107,7 +107,7 @@ inline void drawResourceText(sf::RenderWindow& window, const gl::Hex& hex, float
     
     std::string text;
     if (hex.hasGold()) {
-        text = std::to_string(hex.getGold()) + "G"; // Предполагая, что есть метод getGoldAmount()
+        text = std::to_string(hex.getGold()); // Предполагая, что есть метод getGoldAmount()
     } 
     // else if (hex.hasTreasure()) {
     //     text = std::to_string(hex.getGold()) + "T"; // Предполагая, что есть метод getTreasureAmount()

@@ -35,7 +35,7 @@ namespace GameLogic {
         bool hasGold() const {
             return gold ? true : false;
         }
-        bool getGold() const {
+        uint16_t getGold() const {
             return gold;
         }
         uint16_t giveGold(uint16_t amount) {

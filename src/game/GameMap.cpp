@@ -106,17 +106,14 @@ void Game::createShips() {
     }
 
     for (size_t i = playersAmount; i - playersAmount < waterCells.size() * percent_ships_in_water; ++i) {
+        gl::Owner owner = (i % 2) ? static_cast<gl::Owner>(&pirate) : static_cast<gl::Owner>(&enemy);
+        auto ship = std::make_unique<gl::Ship>(owner, waterCells[i]);
+        gl::Ship* shipPtr = ship.get();
+        waterCells[i]->setTroopOf<gl::Ship>(shipPtr);
+
         if (i % 2) {
-            gl::Owner owner = &pirate;
-            auto ship = std::make_unique<gl::Ship>(owner, waterCells[i]);
-            gl::Ship* shipPtr = ship.get();
-            waterCells[i]->setTroopOf<gl::Ship>(shipPtr);
             pirate.addTroop(std::move(ship));
         } else {
-            gl::Owner owner = &enemy;
-            auto ship = std::make_unique<gl::Ship>(owner, waterCells[i]);
-            gl::Ship* shipPtr = ship.get();
-            waterCells[i]->setTroopOf<gl::Ship>(shipPtr);
             enemy.addTroop(std::move(ship));
         }
     }
