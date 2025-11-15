@@ -101,7 +101,7 @@ private:
                 break;
             case 8: // Players amount
                 playersAmount = std::max(1, playersAmount + direction);
-                playersAmount = std::min(playersAmount, static_cast<uint8_t>(4)); // Ограничение до 4 игроков
+                playersAmount = std::min(playersAmount, static_cast<uint8_t>(255)); // Ограничение до 4 игроков
                 break;
             default:
                 break;
@@ -191,7 +191,7 @@ private:
         instructions.setCharacterSize(14);
         instructions.setFillColor(sf::Color(150, 150, 200));
         sf::FloatRect instrBounds = instructions.getLocalBounds();
-        instructions.setPosition(centerX - instrBounds.width / 2, 350.f);
+        instructions.setPosition(centerX - instrBounds.width / 2, 450.f);
         window.draw(instructions);
 
         window.display();

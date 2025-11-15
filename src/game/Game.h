@@ -2,6 +2,7 @@
 // #define GAME_H
 
 #include <SFML/Graphics.hpp>
+#include <cstdint>
 #include <vector>
 #include <memory>
 #include <random>
@@ -21,8 +22,11 @@ public:
     Game();
     void run();
 
+    uint8_t p_id = 0;
+    bool isProcessingTurn = true;
+
 private:
-    int totalTurnCount = 0;
+    uint16_t totalTurnCount = 0;
 
         // Основные методы игрового цикла
     void processEvents();
@@ -36,6 +40,7 @@ private:
     bool initializeGameWorld();
     bool startMenu();
     bool loadTextures();
+    void processPlayerTurn();
     
     // Генерация игрового мира
     void generateMap();
@@ -132,8 +137,8 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
 
     // это for надо по хорошему на старте как поставят
     // std::vector<gl::Ship*> ships;
-    std::vector<gl::Hex*> seenCells;
-    std::vector<gl::Hex*> viewableHexes;
+    // std::vector<gl::Hex*> seenCells;
+    // std::vector<gl::Hex*> viewableHexes;
     sf::Font font;
 
     double deepWater;
@@ -164,16 +169,16 @@ private:
     bool isPirateOwner(const gl::Owner& owner) const;
 
 public:
-    gl::Player* getPlayer() const { 
-        return players[0].get();  // .get() для unique_ptr
-    }
-    gl::Enemy* getEnemy() { 
-        return &enemy;  // Берем адрес объекта
-    }
-
-    gl::Pirate* getPirate() { 
-        return &pirate; // Берем адрес объекта
-    }
+    // gl::Player* getPlayer() const { 
+    //     return players[0].get();  // .get() для unique_ptr
+    // }
+    // gl::Enemy* getEnemy() { 
+    //     return &enemy;  // Берем адрес объекта
+    // }
+    //
+    // gl::Pirate* getPirate() { 
+    //     return &pirate; // Берем адрес объекта
+    // }
 };
 
 // #endif

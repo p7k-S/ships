@@ -14,6 +14,8 @@ namespace GameLogic {
         private:
             uint8_t playerId;
             std::vector<uint8_t> friendsId;
+            std::vector<Hex*> seenCells;
+            std::vector<Hex*> viewableCells;
             /* // есть у каждой сущности
             sf::Color color; from Entity
             std::string name;
@@ -62,6 +64,22 @@ namespace GameLogic {
                 }
             }
             
+            // View
+            void clearViewableCells() {
+                viewableCells.clear();
+            }
+            void addViewableCells(Hex* cell) {
+                viewableCells.push_back(cell);
+            }
+            std::vector<Hex*>& getViewableCells() {
+                return viewableCells;
+            }
+            void addSeenCells(Hex* cell) {
+                seenCells.push_back(cell);
+            }
+            std::vector<Hex*>& getSeenCells() {
+                return seenCells;
+            }
             // ADD TROOPS
             // ✅ Создание и добавление через внешний фабричный метод
             // template<typename T, typename... Args>

@@ -1,5 +1,7 @@
 #pragma once
 #include "BaseBuild.h"
+#include "../items/BaseItem.h"
+#include <memory>
 
 
 // 15 клеток по горизонтали с разницей в ширину карты(15 = witdth) и ставим 2 порта
@@ -9,26 +11,19 @@
 namespace GameLogic {
     class Port : public Building {
         private:
-            uint8_t view;         // range(радиус) = 5
+            uint8_t view = 5;         // range(радиус) = 5
             // uint16_t damage;      // 35
             // uint16_t damageRange; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем veiw
-            uint16_t heal;      // 100
-            uint16_t health;      // 100
-            uint16_t maxHealth;
-            uint16_t gold;
-            uint16_t maxGold;     // 1000
-            uint8_t spawnRate;      // кол-во ходов на spawn
+            uint16_t heal = 40;      // 100
+            uint16_t health = 500;      // 100
+            uint16_t maxHealth = 500;
+            uint16_t gold = 500;
+            uint16_t maxGold = 2000;     // 1000
+            uint8_t spawnRate = 255;      // кол-во ходов на spawn
+            std::vector<std::unique_ptr<Item>> items;
         public:
             Port(Owner owner, Hex* currCell):
-                Building(owner, currCell),
-                view(5),
-                heal(70),
-                health(1000),
-                maxHealth(1000),
-                gold(0),
-                maxGold(5000),
-                spawnRate(12)
-        {}
+                Building(owner, currCell) {}
 
         // Геттеры
         uint8_t getView() const { return view; }

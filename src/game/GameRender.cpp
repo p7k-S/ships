@@ -11,8 +11,9 @@
 
 #include "GameConfig.h"
 #include "GameLogic.h"
+#include <vector>
 // #include <iostream>
-// #include "../render/ui/UIRenderer.h"
+#include "../render/ui/UIRenderer.h"
 
 void Game::render() {
     window.clear(sf::Color(20, 20, 20));
@@ -21,15 +22,17 @@ void Game::render() {
     if (fullscreenMapMode) {
         window.setView(mapView);
     } else {
-        // UIRenderer::renderSidebar(window, font, "lolo");
-        // UIRenderer::renderBottomBar(window, font, totalTurnCount);
+        UIRenderer::renderSidebar(window, font, "lolo");
+        UIRenderer::renderBottomBar(window, font, totalTurnCount);
+        // renderCellInfoPanel();
+        // renderBottomStatsBar();
     }
 
     // 2️⃣ Основные компоненты рендеринг
-    renderMap();
-    renderShipRange(); // АААААААААЭЭЭЭЭЭЭЭЭЭЭЭЭЭУУУУУУУУУУУУУУУУУУУУУУУУУУУУ убрать
+    renderMap(); // отрисовка видимых клеток
+    renderShipRange();
     renderPath();
-    renderShipUI();
+    renderShipUI(); // отрисовка бара у кораблей
 
     // 3️⃣ Вернуть стандартный view, чтобы UI рисовался в фиксированных координатах экрана
     // window.setView(window.getDefaultView());
@@ -70,7 +73,7 @@ void Game::renderMap() {
     // Получаем видимую область камеры
     sf::FloatRect viewBounds = getViewBounds();
     
-    for (const auto& hexp : seenCells) {
+    for (const auto& hexp : players[p_id]->getSeenCells()) {
         const auto& hex = *hexp;
         double x_pos = hex.q * hexRadius * 1.5;
         double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
@@ -114,7 +117,8 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
     sf::ConvexShape hexShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
 
     // Определяем видимость и цветовую схему
-    bool isVisible = std::find(viewableHexes.begin(), viewableHexes.end(), &hex) != viewableHexes.end();
+    std::vector<gl::Hex*> view_cells = players[p_id]->getViewableCells();
+    bool isVisible = std::find(view_cells.begin(), view_cells.end(), &hex) != view_cells.end();
     auto currentScheme = isVisible ? colSchemeDefault : colSchemeInactive;
 
     hexShape.setFillColor(getColorByScheme(hex.getNoise(), currentScheme, deepWater, water, land));
@@ -230,7 +234,7 @@ void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sp
         } else if (isEnemyOwner(shipOwner)) {
                     hexShape.setFillColor(COLORS["burgundy"]);
         } else if (isPlayerOwner(shipOwner)) {
-                    hexShape.setFillColor(COLORS["dark_green"]);
+                    hexShape.setFillColor(players[p_id]->getColor());
                 // case gl::Owner::FRIENDLY:
                 //     hexShape.setFillColor(sf::Color::White);
                 //     break;
@@ -239,9 +243,10 @@ void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sp
 }
 
 void Game::renderShipUI() {
-    for (const auto& hexp : seenCells) {
+    std::vector<gl::Hex*> view_cells = players[p_id]->getViewableCells();
+    for (const auto& hexp : players[p_id]->getSeenCells()) {
         const auto& hex = *hexp;
-        bool isVisible = std::find(viewableHexes.begin(), viewableHexes.end(), hexp) != viewableHexes.end();
+        bool isVisible = std::find(view_cells.begin(), view_cells.end(), hexp) != view_cells.end();
         
         if (hex.hasTroop() && isVisible) {
             double x_pos = hex.q * hexRadius * 1.5;

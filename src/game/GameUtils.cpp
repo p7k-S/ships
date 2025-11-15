@@ -1,6 +1,7 @@
 #include "Game.h"
 #include "GameConfig.h"
 #include <cmath>
+// #include <cstdint>
 #include <unordered_set>
 // #include <memory> // для std::shared_ptr
 
@@ -25,19 +26,20 @@ void Game::cleanupDestroyedShips() {
 }
 
 void Game::updateVisibleCells() {
-    viewableHexes.clear();
+    players[p_id]->clearViewableCells();
     std::unordered_set<gl::Hex*> unique;
-    for (auto& player : players) {
+    auto player = players[p_id].get();
+    // for (auto& player : players) {
         const auto& playerTroops = player->getTroops();
         for (const auto& troop : playerTroops) {
             if (auto* ship = static_cast<gl::Ship*>(troop.get())) {
                 for (auto* cell : cellsInRange(*ship->getCell(), hexMap, ship->getView(), gl::RangeMode::VIEW)) {
                     if (unique.insert(cell).second) {
-                        viewableHexes.push_back(cell);
+                        players[p_id]->addViewableCells(cell);
                     }
                 }
             }
-        }
+        // }
     }
 }
 
@@ -46,12 +48,12 @@ void Game::resetSelection() {
     selectedTroop = nullptr;
     selectedHex = nullptr;
     targetHex = nullptr;
-    currentPath.clear();
+    // currentPath.clear();
 }
 
 void Game::cleanup() {
     // ships.clear();
-    seenCells.clear();
-    viewableHexes.clear();
-    currentPath.clear();
+    // seenCells.clear();
+    // viewableHexes.clear();
+    // currentPath.clear();
 }

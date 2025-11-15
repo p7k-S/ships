@@ -17,6 +17,13 @@ namespace GameLogic {
         Owner getOwner() const { return owner; }
         void setOwner(Owner newOwner) { owner = newOwner; }
 
+        bool isOwnedByCurrentPlayer(Player* currentPlayer) const {
+            auto owner = getOwner();
+            return std::get_if<Player*>(&owner) && 
+                *std::get_if<Player*>(&owner) == currentPlayer;
+        }
+
+
         virtual uint8_t getView() const;
         virtual uint8_t getMoveRange() const;
         // Damage

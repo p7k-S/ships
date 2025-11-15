@@ -5,12 +5,13 @@
 // #include "../game/troops/Ship.h"
 #include "../game/map/Cell.h"
 // #include "../game/troops/BaseTroop.h"
+// #include <cstdint>
 #include <iostream>
 
 void Game::handleShipSelection(const sf::Vector2f& worldPos) {
     for (auto& hex : hexMap) {
         if (isPointInHex(worldPos, hex)) {
-            if (hex.hasTroop() && std::holds_alternative<gl::Player*>(hex.getTroop()->getOwner())) {
+            if (hex.hasTroop() && hex.getTroop()->isOwnedByCurrentPlayer(players[p_id].get())) {
                 selectedTroop = hex.getTroop();
                 waitingForMove = true;
                 targetHex = nullptr;
@@ -59,7 +60,7 @@ void Game::executeShipAction() {
     if (selectedTroop->canMoveTo(targetHex) && std::find(reachableHexes.begin(), reachableHexes.end(), targetHex)!= reachableHexes.end()) {
         selectedTroop->moveTo(targetHex);
         selectedTroop->takeGoldFromCell(targetHex);
-        addViewedCells(seenCells, selectedTroop, hexMap, gl::RangeMode::VIEW);
+        addViewedCells(players[p_id]->getSeenCells(), selectedTroop, hexMap, gl::RangeMode::VIEW);
     } else if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())
             && std::find(attackRangeHexes.begin(), attackRangeHexes.end(), targetHex)!= attackRangeHexes.end()) {
         selectedTroop->giveDamage(targetHex);

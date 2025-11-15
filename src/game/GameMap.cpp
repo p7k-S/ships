@@ -102,7 +102,7 @@ void Game::createShips() {
         waterCells[i]->setTroopOf<gl::Ship>(shipPtr);
         players[i]->addTroop(std::move(ship));
 
-        addViewedCells(seenCells, shipPtr, hexMap, gl::RangeMode::VIEW);
+        addViewedCells(players[i]->getSeenCells(), shipPtr, hexMap, gl::RangeMode::VIEW);
     }
 
     for (size_t i = playersAmount; i - playersAmount < waterCells.size() * percent_ships_in_water; ++i) {

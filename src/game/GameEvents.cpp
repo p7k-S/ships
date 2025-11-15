@@ -70,7 +70,7 @@ void Game::processEvents() {
 
             case sf::Event::MouseButtonReleased:
                 if (event.mouseButton.button == sf::Mouse::Left)
-                    isDragging = false;  // 🔥 отпускаем "палец"
+                    isDragging = false;
                 break;
 
             case sf::Event::MouseWheelScrolled:
@@ -96,11 +96,17 @@ void Game::handleKeyPressed(const sf::Event& event) {
     if (event.key.code == sf::Keyboard::Enter) {
         if (waitingForMove && selectedTroop && targetHex) {
             executeShipAction();
+            updateVisibleCells();
+            render();
         }
     }
 
     if (event.key.code == sf::Keyboard::F) {
         fullscreenMapMode = !fullscreenMapMode;
+    }
+    if (event.key.code == sf::Keyboard::G) {
+        isProcessingTurn = false;
+        std::cout << "Turn ended by player! " << p_id << std::endl;  // Добавь для отладки
     }
 
     handleCameraControl(event);
