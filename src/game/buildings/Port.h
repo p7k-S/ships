@@ -26,9 +26,9 @@ namespace GameLogic {
                 Building(owner, currCell) {}
 
         // Геттеры
-        uint8_t getView() const { return view; }
-        uint16_t getHealth() const { return health; }
-        uint16_t getMaxHealth() const { return maxHealth; }
+        uint8_t getView() const override { return view; }
+        uint16_t getHealth() const override { return health; }
+        uint16_t getMaxHealth() const override { return maxHealth; }
         uint16_t getGold() const { return gold; }
         uint16_t getMaxGold() const { return maxGold; }
         uint8_t getSpawnRate() const { return spawnRate; }
@@ -80,7 +80,33 @@ namespace GameLogic {
             return false;
         }
 
-        void takeDamage(uint16_t damage) { if (damage >= health) { health = 0; } else { health -= damage; } }
+        virtual void takeDamage(uint16_t damage) override { if (damage >= health) { health = 0; } else { health -= damage; } }
+        virtual bool isDestroyed() const override { return health == 0; }
+
+        virtual void lostResources(Building* enemy) override {
+        }
+        // virtual void lostResources(Port* enemy) override {
+        //     Port* enemy_port = static_cast<Port*>(enemy);
+        //
+        //     if (enemy_port->isDestroyed()) {
+        //         uint16_t enemyGold = enemy_port->getGold();
+        //         uint16_t availableSpace = getMaxGold() - getGold();
+        //         uint16_t transferableGold = std::min(enemyGold, availableSpace);
+        //
+        //         // Забираем сколько влезает
+        //         enemy_port->loseGold(transferableGold);
+        //         takeGold(transferableGold);
+        //
+        //         // Остальное высыпаем на клетку
+        //         uint16_t remainingGold = enemy_port->getGold();
+        //         Hex* targetCell = enemy_port->getCell();
+        //         if (remainingGold > 0) {
+        //             addGoldToCell(targetCell, remainingGold);
+        //             enemy_port->loseGold(remainingGold);
+        //         }
+        //     }
+        // }
+
 
         void healing() { 
             if (health + heal <= maxHealth) {

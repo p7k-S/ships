@@ -4,26 +4,32 @@
 namespace GameLogic
 {
     bool isEnemy(std::variant<Player*, Enemy*, Pirate*> p1, 
-                 std::variant<Player*, Enemy*, Pirate*> p2) {
-        if (!std::holds_alternative<Player*>(p1) ||
-            !std::holds_alternative<Player*>(p2)) {
-            if (p1.index() == p2.index()) {
-                return false;           // если оба не player и оба одного класса
+            std::variant<Player*, Enemy*, Pirate*> p2) {
+        // Один и тот же объект
+        if (p1 == p2) return false;
+
+        // Разные типы
+        if (p1.index() != p2.index()) return true;
+
+        // Оба Player
+        if (auto* player1 = std::get_if<Player*>(&p1)) {
+            if (auto* player2 = std::get_if<Player*>(&p2)) {
+                // Проверяем взаимную дружбу
+                return !areFriends(*player1, *player2);
             }
-            return true;                // если player и не player
         }
 
-        Player* player1 = std::get<Player*>(p1);
-        Player* player2 = std::get<Player*>(p2);
-
-        std::vector<uint8_t> friendsIds = player2->getFriendsIds();
-        uint8_t secondP_id = player1->getId();
-
-        for (auto& id : friendsIds) {
-            if (secondP_id == id)
-                return false;
-        }
-
+        // Все остальные случаи - враги
         return true;
+    }
+
+    bool areFriends(Player* p1, Player* p2) {
+        auto friends1 = p1->getFriendsIds();
+        auto friends2 = p2->getFriendsIds();
+
+        bool p1FriendsWithP2 = std::find(friends1.begin(), friends1.end(), p2->getId()) != friends1.end();
+        bool p2FriendsWithP1 = std::find(friends2.begin(), friends2.end(), p1->getId()) != friends2.end();
+
+        return p1FriendsWithP2 && p2FriendsWithP1;
     }
 } // namespace GameLogic

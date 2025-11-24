@@ -30,7 +30,8 @@ namespace GameLogic {
         virtual uint16_t getDamageRange() const;
         virtual void lostResources(Troop* enemy) = 0;
         // virtual void giveDamage(Hex* targetCell, std::vector<Hex>& hexMap);
-        virtual void giveDamage(Hex* targetCell) = 0;
+        virtual void giveDamageToTroop(Hex* targetCell) = 0;
+        virtual void giveDamageToBuilding(Hex* targetCell) = 0;
         virtual bool isDestroyed() const  = 0;
         virtual void takeDamage(uint16_t dmg) = 0;
 

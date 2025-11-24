@@ -28,7 +28,10 @@ namespace GameLogic {
     class Gold;
     class Treasure;
 
+    // Building type
     class Building;
+    class Port;
+
     class Entity;
 
     // weather type
@@ -59,6 +62,7 @@ namespace GameLogic {
         FOREST
     };
 
+    // Flat top
     const std::vector<std::pair<int, int>> DIRECTIONS_EVEN = {
         {1, 0}, {1, -1}, {0, -1}, 
         {-1, -1}, {-1, 0}, {0, 1}
@@ -72,9 +76,12 @@ namespace GameLogic {
     static std::vector<Hex*> getShortestRoad(std::vector<Hex>& area, Hex* start, Hex* end);
     static std::vector<Hex*> getShortestRoad(std::vector<Hex*>& area, Hex* start, Hex* end);
     bool areNeighbors(Hex* h1, Hex* h2);
-    Hex* getNeighborHex(Hex* hex, int side, const std::vector<Hex*>& allHexes);
+    // Hex* getNeighborHex(Hex* hex, int side, const std::vector<Hex*>& allHexes);
+    std::vector<Hex> getNeighbors(const Hex& h);
     struct HexEdge;
     struct HexEdgeHash;
+
+    bool portCanPlayced(const Hex& h);
     std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode); // ship.cpp
     std::vector<HexEdge> getHexEdges(Hex* hex);
     std::vector<HexEdge> getPerimeterEdges(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes);
@@ -84,5 +91,5 @@ namespace GameLogic {
     // Owners func
     using Owner = std::variant<Player*, Enemy*, Pirate*>;
     bool isEnemy(Owner p1, Owner p2); // entity/EntityFuncs.cpp
-
+    bool areFriends(Player* p1, Player* p2);
 }

@@ -13,25 +13,27 @@
 #include "GameLogic.h"
 #include <vector>
 // #include <iostream>
-#include "../render/ui/UIRenderer.h"
+// #include "../render/ui/UIRenderer.h"
+#include "../textures/EmbeddedResources.h"
 
 void Game::render() {
     window.clear(sf::Color(20, 20, 20));
 
     // 1️⃣ Устанавливаем карту, если режим полноэкранный
-    if (fullscreenMapMode) {
-        window.setView(mapView);
-    } else {
+    // if (fullscreenMapMode) {
+    //     window.setView(mapView);
+    // } else {
         // UIRenderer::renderSidebar(window, font, "lolo");
         // UIRenderer::renderBottomBar(window, font, totalTurnCount);
         // renderCellInfoPanel();
         // renderBottomStatsBar();
-    }
+    // }
 
     // 2️⃣ Основные компоненты рендеринг
+    updateVisibleCells();
     renderMap(); // отрисовка видимых клеток
     renderShipRange();
-    renderPath();
+    // renderPath();
     renderShipUI(); // отрисовка бара у кораблей
 
     // 3️⃣ Вернуть стандартный view, чтобы UI рисовался в фиксированных координатах экрана
@@ -40,9 +42,22 @@ void Game::render() {
     // Отрисовка UI
 
     window.display();
-
 }
 
+void Game::renderWaitMove() {
+    window.clear(sf::Color(20, 20, 20));
+
+    sf::Text text;
+    text.setFont(EmbeddedResources::main_font);
+    text.setString("Next turn: " + players[p_id]->getName() + "\nPress SPACE to continue");
+    text.setCharacterSize(24);
+    text.setFillColor(COLORS["red"]);
+    sf::FloatRect textBounds = text.getLocalBounds();
+    text.setPosition(100, 100); // простая позиция вместо центрирования
+
+    window.draw(text);
+    window.display();
+}
 
 void Game::renderBottomStatsBar() {
     sf::RectangleShape bar;
@@ -50,7 +65,7 @@ void Game::renderBottomStatsBar() {
     bar.setFillColor(sf::Color(50, 50, 70));
     window.draw(bar);
 
-    sf::Text stats("Ships: 5 | Treasures: 2 | Turn: 3", font, 20);
+    sf::Text stats("Ships: 5 | Treasures: 2 | Turn: 3", EmbeddedResources::main_font, 20);
     stats.setPosition(20, 20);
     window.draw(stats);
 }
@@ -63,7 +78,7 @@ void Game::renderCellInfoPanel() {
 
     if (targetHex) {
         sf::Text info("Cell: " + std::to_string(targetHex->q) + "," +
-                std::to_string(targetHex->r), font, 18);
+                std::to_string(targetHex->r), EmbeddedResources::main_font, 18);
         info.setPosition(20, 20);
         window.draw(info);
     }
@@ -123,34 +138,45 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
 
     hexShape.setFillColor(getColorByScheme(hex.getNoise(), currentScheme, deepWater, water, land));
     hexShape.setOutlineColor(COLORS[isVisible ? "dark_gray" : "very_dark_gray"]);
+    // hexShape.setOutlineColor(COLORS["dark_gray"]);
     hexShape.setOutlineThickness(1);
 
     // Подготовка спрайтов
-    sf::Sprite goldSprite, shipSprite;
+    sf::Sprite sprite;
     bool hasGold = false;
+    bool hasBuilding = false;
     bool hasTreasure = false;
     bool hasTroop = false;
     
     if (isVisible) {
         hasTroop = hex.hasTroop();
+        hasBuilding = hex.hasBuilding();
         hasTreasure = hex.hasItemOf<gl::Treasure>();
         hasGold = hex.hasGold();
         
+        if (hex.hasBuilding()) {
+            auto ownerVariant = hex.getBuilding()->getOwner();
+            auto color = std::visit([](auto* owner) {
+                    return owner->getColor();
+                    }, ownerVariant);
+
+            hexShape.setFillColor(color);
+            // hexShape.setOutlineThickness(3);
+        }
+
         if (hasTroop) {
-            renderShipOnHex(hex, hexShape, shipSprite);
-        } else if (hasTreasure) {
-            goldSprite.setTexture(treasure_texture);
-        } else if (hasGold) {
-            goldSprite.setTexture(gold_texture);
+            renderShipOnHex(hex, hexShape, sprite);
         }
-        
-        // Нормализуем только используемые спрайты
-        if (hasTreasure || hasGold) {
-            normlaizeSprite(goldSprite, hexRadius, x_pos, y_pos);
+        else if (hasBuilding) {
+            sprite.setTexture(EmbeddedResources::port_texture);
         }
-        if (hasTroop) {
-            normlaizeSprite(shipSprite, hexRadius, x_pos, y_pos);
+        else if (hasTreasure) {
+            sprite.setTexture(EmbeddedResources::treasure_texture);
         }
+        else if (hasGold) {
+            sprite.setTexture(EmbeddedResources::gold_texture);
+        }
+        normlaizeSprite(sprite, hexRadius, x_pos, y_pos);
     }
 
     // Выделение выбранного гекса
@@ -162,16 +188,16 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
     // Отрисовка всего за один проход
     window.draw(hexShape);
     
-    if (hasTreasure || hasGold) {
-        window.draw(goldSprite);
-    }
+    // if (hasTreasure || hasGold) {
+    //     window.draw(goldSprite);
+    // }
     
     if (hasGold) {
-        drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+        drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
     }
     
-    if (hasTroop) {
-        window.draw(shipSprite);
+    if (isVisible && (hasTroop || hasBuilding || hasTreasure || hasGold)) {
+        window.draw(sprite);
     }
 }
 
@@ -213,13 +239,13 @@ void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sp
     auto troopOwner = troop->getOwner();
 
     if (isPlayerOwner(troopOwner)) {
-        shipSprite.setTexture(player_ship_texture);
+        shipSprite.setTexture(EmbeddedResources::player_ship_texture);
         hexShape.setOutlineColor(std::get<GameLogic::Player*>(troopOwner)->getColor());
     } else if (isEnemyOwner(troopOwner)) {
-        shipSprite.setTexture(enemy_ship_texture);
+        shipSprite.setTexture(EmbeddedResources::enemy_ship_texture);
         hexShape.setOutlineColor(COLORS["burgundy"]);
     } else if (isPirateOwner(troopOwner)) {
-        shipSprite.setTexture(pirate_ship_texture);
+        shipSprite.setTexture(EmbeddedResources::pirate_ship_texture);
         hexShape.setOutlineColor(sf::Color::Black);
     }
     
@@ -245,8 +271,20 @@ void Game::renderShipUI() {
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             
             if (colSchemeDefault == COLORFULL) {
-                drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, font, font_size);
+                drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
             }
+        }
+    }
+}
+
+void Game::addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Troop* troop, std::vector<gl::Hex>& hexMap, gl::RangeMode mode){
+    std::vector<gl::Hex*> newCells = cellsInRange(*troop->getCell(), hexMap, troop->getView(), mode);
+    std::unordered_set<gl::Hex*> uniqueSet(seenCells.begin(), seenCells.end());
+    seenCells.reserve(seenCells.size() + newCells.size());
+
+    for (auto* cell : newCells) {
+        if (uniqueSet.insert(cell).second) {
+            seenCells.push_back(cell);
         }
     }
 }

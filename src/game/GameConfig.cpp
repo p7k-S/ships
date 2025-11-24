@@ -19,7 +19,7 @@ double water_delim = 0.65;
 double land_delim = 0.9;
 
 uint8_t font_size = 10;
-std::string font_path = "../src/textures/JetBrainsMonoNLNerdFont-Regular.ttf";
+// std::string font_path = "../src/textures/JetBrainsMonoNLNerdFont-Regular.ttf";
 
 std::unordered_map<std::string, sf::Color> COLORS = {
     // Players color
@@ -41,6 +41,9 @@ std::unordered_map<std::string, sf::Color> COLORS = {
     {"hot_pink", sf::Color(255, 20, 147)},
     {"electric_blue", sf::Color(125, 249, 255)},
     {"neon_green", sf::Color(57, 255, 20)},
+
+    // Port
+    {"brown", sf::Color(150, 75, 0)},
 
     // entity colors
     {"enemy", sf::Color(255, 0, 0)}, // red

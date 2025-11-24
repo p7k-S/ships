@@ -8,7 +8,7 @@
 // #include <cstdint>
 #include <iostream>
 
-void Game::handleShipSelection(const sf::Vector2f& worldPos) {
+void Game::handleTroopSelection(const sf::Vector2f& worldPos) {
     for (auto& hex : hexMap) {
         if (isPointInHex(worldPos, hex)) {
             if (hex.hasTroop() && hex.getTroop()->isOwnedByCurrentPlayer(players[p_id].get())) {
@@ -16,7 +16,6 @@ void Game::handleShipSelection(const sf::Vector2f& worldPos) {
                 waitingForMove = true;
                 targetHex = nullptr;
                 currentPath.clear();
-                std::cout << "Корабль выбран.\n";
             } else {
                 selectedHex = &hex;
                 selectedTroop = nullptr;
@@ -31,17 +30,28 @@ void Game::handleTargetSelection(const sf::Vector2f& worldPos) {
     for (auto& hex : hexMap) {
         if (isPointInHex(worldPos, hex)) {
             targetHex = &hex;
-            std::cout << "Цель выбрана.\n";
+            if (waitingForMove && selectedTroop && targetHex) {
+                executeTroopAction();
+                // updateVisibleCells();
+                // render();
+            }
             break;
         }
     }
 }
 
-void Game::executeShipAction() {
-    if (!selectedTroop || !targetHex) return;
-
+void Game::executeTroopAction() {
     gl::Hex* selectedHex = selectedTroop->getCell();
-    if (!selectedHex) return;
+    if (!selectedHex || selectedHex == targetHex) {
+        resetSelection();
+        return;
+    }
+
+    int fromQ = selectedHex->q;
+    int fromR = selectedHex->r;
+    int toQ = targetHex->q;
+    int toR = targetHex->r;
+
 
     // Диапазон перемещения
     std::vector<gl::Hex*> reachableHexes = cellsInRange(
@@ -61,13 +71,18 @@ void Game::executeShipAction() {
         selectedTroop->moveTo(targetHex);
         selectedTroop->takeGoldFromCell(targetHex);
         addViewedCells(players[p_id]->getSeenCells(), selectedTroop, hexMap, gl::RangeMode::VIEW);
-    } else if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())
-            && std::find(attackRangeHexes.begin(), attackRangeHexes.end(), targetHex)!= attackRangeHexes.end()) {
-        selectedTroop->giveDamage(targetHex);
+        // updateVisibleCells();
+
+    } else if (std::find(attackRangeHexes.begin(), attackRangeHexes.end(), targetHex) != attackRangeHexes.end()) {
+            if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())) {
+                selectedTroop->giveDamageToTroop(targetHex);
+            } else
+            if (targetHex->hasBuilding() && isEnemy(targetHex->getBuilding()->getOwner(), selectedTroop->getOwner())) {
+                selectedTroop->giveDamageToBuilding(targetHex);
+            }
     } else {
-        std::cout << "Невозможно выполнить действие.\n";
+        std::cout << "target hex is not in any range.\n";
     }
 
     resetSelection();
 }
-

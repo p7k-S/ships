@@ -22,6 +22,7 @@ namespace GameLogic {
         CellType type;
     public:
         int q, r;
+        Hex() = default; // Конструктор по умолчанию
 
         Hex(int q, int r) : q(q), r(r) {}
         Hex(int q, int r, double noise) : q(q), r(r), noiseValue(noise) {}
@@ -130,6 +131,7 @@ namespace GameLogic {
         bool hasTroop() const { return troop ? true : false; }
         Troop* getTroop() const { return hasTroop() ? troop : nullptr; }
         void removeTroop() { troop = nullptr; }
+        void removeBuilding() { building = nullptr; }
 
         // template<typename T>
         //     bool hasTroopOf() const {
@@ -147,6 +149,26 @@ namespace GameLogic {
         //     }
 
         // ✅ Исправленный removeTroop
+
+        // Buildings
+        bool hasBuilding() const { return building ? true : false; }
+        Building* getBuilding() const { return hasBuilding() ? building : nullptr; }
+
+        template<typename T>
+            bool setBuildingOf(T* buildingPtr) {
+                static_assert(std::is_base_of_v<Building, T>, "T must derive from Building");
+
+                if (building) { return false; }
+
+                if constexpr (std::is_same_v<T, Port>) {
+                    if (type != CellType::WATER) {
+                        return false;
+                    }
+                }
+
+                building = buildingPtr;
+                return true;
+            }
 
 
 

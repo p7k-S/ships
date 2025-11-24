@@ -23,7 +23,6 @@ std::vector<GameLogic::Hex> createMap(const PerlinNoise& perlin, int mapWidth, i
     for (int r = 0; r < mapHeight; ++r) {
         for (int q = 0; q < mapWidth; ++q) {
             double val = perlin.octaveNoise(q * scale, r * scale, octaves, 0.5);
-            // if (q == mapWidth - 1 || r == mapHeight - 1) val = 0.5;
             hexMap.emplace_back(GameLogic::Hex(q, r, val));
         }
     }

@@ -20,7 +20,8 @@ namespace GameLogic {
     }
 
     std::vector<Hex> getNeighbors(const Hex& h) {
-        const auto& dirs = (h.r % 2 == 0) ? DIRECTIONS_EVEN : DIRECTIONS_ODD;
+        const auto& dirs = (h.q % 2 == 0) ? DIRECTIONS_EVEN : DIRECTIONS_ODD;
+
         std::vector<Hex> result;
         for (auto [dq, dr] : dirs) {
             result.push_back({h.q + dq, h.r + dr});
@@ -28,10 +29,17 @@ namespace GameLogic {
         return result;
     }
 
+    bool portCanPlayced(const Hex& h) {
+        if (h.getCellType() != CellType::WATER) {
+            return false;
+        }
+        return false;
+    }
+
     // mode = attack/view/move
     std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode)
     {
-        if (!start.hasTroop()) return {};
+        if (!(start.hasTroop() || start.hasBuilding())) return {};
 
         std::vector<Hex*> reachable;
 
@@ -96,6 +104,10 @@ namespace GameLogic {
                 }
             }
         }
+
+        // if (mode != RangeMode::VIEW) {
+        //     reachable.erase(std::remove(reachable.begin(), reachable.end(), &start), reachable.end());
+        // }
 
         return reachable;
     }

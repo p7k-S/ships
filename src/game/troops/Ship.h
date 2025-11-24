@@ -17,7 +17,7 @@ namespace GameLogic {
         private:
             uint8_t view = 5;         // range(радиус) = 5
             uint8_t move = 4;         // range(радиус) = 3
-            uint16_t damage = 50;      // 35
+            uint16_t damage = 500;      // 35
             uint16_t damageRange = 3; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
             uint16_t health = 100;      // 100
             uint16_t maxHealth = 100;
@@ -50,29 +50,44 @@ namespace GameLogic {
             uint16_t getDamageRange() const override { return damageRange; }
             void setDamageRange(uint16_t range) { damageRange = range; }
             virtual void takeDamage(uint16_t dmg) override { dmg > health ? health = 0 : health -= dmg; }
-            virtual void giveDamage(Hex* targetCell) override {
-                // Hex* my_cell = getCell();
-                // if (targetCell == my_cell) return;
-                // std::vector<Hex*> reachable = cellsInRange(*my_cell, hexMap, my_cell->getTroop()->getDamageRange(), RangeMode::DAMAGE); // false=не радиус обзора
-
-                // if (std::find(reachable.begin(), reachable.end(), targetCell) != reachable.end()) {
-                    Troop* enemy = targetCell->getTroop();
-                    enemy->takeDamage(damage);
-                    if (enemy->isDestroyed()) {
-                        lostResources(enemy);
-                        targetCell->removeTroop();
+            virtual void giveDamageToTroop(Hex* targetCell) override {
+                Troop* enemy = targetCell->getTroop();
+                enemy->takeDamage(damage);
+                if (enemy->isDestroyed()) {
+                    lostResources(enemy);
+                    targetCell->removeTroop();
 
 
-                        std::visit(
-                            [enemy](auto* ownerPtr) {
-                                if (ownerPtr) {
-                                    ownerPtr->removeTroop(enemy);
-                                }
-                            }, 
-                            enemy->getOwner()
-                        );
-                    }
-                // }
+                    std::visit(
+                        [enemy](auto* ownerPtr) {
+                            if (ownerPtr) {
+                                ownerPtr->removeTroop(enemy);
+                            }
+                        }, 
+                        enemy->getOwner()
+                    );
+                }
+            }
+            virtual void giveDamageToBuilding(Hex* targetCell) override {
+                Building* building = targetCell->getBuilding();
+                building->takeDamage(damage);
+                if (building->isDestroyed()) {
+                    targetCell->removeBuilding();
+
+                    std::cout << "building->isDestroyed()\n";
+                    // lostResources(building);
+
+                    std::visit(
+                        [building](auto* ownerPtr) {
+                            if (ownerPtr) {
+                                ownerPtr->removeBuilding(building);
+                            }
+                        }, 
+                        building->getOwner()
+                    );
+
+                    std::cout << "removed building\n";
+                }
             }
 
             virtual bool isDestroyed() const override { return health == 0; }

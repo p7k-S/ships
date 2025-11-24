@@ -1,7 +1,10 @@
+#pragma once
 #include <SFML/Graphics.hpp>
 #include <cmath>
 #include <iostream>
 #include "../../game/GameConfig.h"
+// #include "../../textures/EmbeddedResources.h"
+#include "../../textures/UIfont.h"
 
 class SimpleConfigUI {
 private:
@@ -15,10 +18,11 @@ private:
     };
     
 public:
-    SimpleConfigUI() : window(sf::VideoMode(500, 400), "Game Configuration") {
-        if (!font.loadFromFile(font_path)) {
-            std::cout << "Font not found, using default" << std::endl;
-        }
+    SimpleConfigUI() 
+        : window(sf::VideoMode(500, 400), "Game Configuration")
+    {
+        font.loadFromMemory(airborne_ttf,
+                airborne_ttf_len);
     }
 
     bool show() {
@@ -43,6 +47,7 @@ private:
     void handleKeyPress(sf::Keyboard::Key key) {
         switch (key) {
             case sf::Keyboard::Space:
+                window.close();
                 startGame = true;
                 break;
                 

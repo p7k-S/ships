@@ -36,10 +36,14 @@ namespace GameLogic {
                 return ++counter;
             }
 
+            int x, y;
+
         public:
             Player(const std::string& name, sf::Color color) 
                 : Entity(name, color), playerId(generateId()) {}
 
+            //net
+            void setPosition(int x, int y) { this->x = x; this->y = y; }
             // GETTERS
             // --- sf::Color getColor() const { return color; } from Entity
             std::string getName() const { return name; }

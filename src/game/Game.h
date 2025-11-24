@@ -1,6 +1,3 @@
-// #ifndef GAME_H
-// #define GAME_H
-
 #include <SFML/Graphics.hpp>
 #include <cstdint>
 #include <vector>
@@ -14,6 +11,9 @@
 #include "../game/GameConfig.h"
 // #include "Renderer.h"
 // #include "InputHandler.h"
+#include "../net/Server.h"
+#include "../net/Client.h"
+
 
 namespace gl = GameLogic;
 
@@ -22,16 +22,52 @@ public:
     Game();
     void run();
 
-    uint8_t p_id = 0;
+    uint8_t p_id = playersAmount;
+    uint8_t my_pid = 0;
+    uint8_t move_amount = 0;
     bool isProcessingTurn = true;
+    // net
+    std::unique_ptr<GameServer> gameServer;
+    std::unique_ptr<GameClient> gameClient;
+    bool isHost = false;
+    uint8_t connectedPlayers = 0;
+    bool isNetworkGame = false; // ⬅️ ДОБАВИТЬ ЭТО
 
+    bool changeTurnLocal = false;
 private:
+    // net
+    void handleNetworkMessages();
+    void sendNetworkMessage(const std::string& message);
+    void createLocalPlayer();
+    void processServerMessage(const std::string& msg);
+    void processClientMessage(const std::string& msg);
+    void sendMap();
+    void receiveMap(const std::string& msg);
+    void sendPlayers();
+    void receivePlayers(const std::string& msg);
+    
+    void sendTroopAction(int fromQ, int fromR, int toQ, int toR);
+    void executeNetworkAction(const std::string& msg);
+
+    uint8_t getMoveAmount(uint8_t moves) const {
+        return move_amount;
+    }
+    void setMoveAmount(uint8_t moves) {
+        move_amount = moves;
+    }
+    void sendGameStateUpdate();
+    void sendShipCreation(int playerIndex, int shipQ, int shipR, const std::string& shipType);
+    void sendTurnUpdate();
+    void handleMoveAction(int playerId, int fromQ, int fromR, int toQ, int toR);
+    void handleAttackAction(int playerId, int attackerQ, int attackerR, int targetQ, int targetR);
+
     uint16_t totalTurnCount = 0;
 
-        // Основные методы игрового цикла
+    // Основные методы игрового цикла
     void processEvents();
     void update();
     void render();
+    void renderWaitMove();
     
     // Инициализация
     bool initialize();
@@ -45,7 +81,8 @@ private:
     // Генерация игрового мира
     void generateMap();
     void distributeCellTypes();
-    void createShips();
+    void createTroops();
+    bool portCanPlayced(const gl::Hex& h);
     void createPlayers();
     void placeGoldAndTreasures();
     
@@ -57,14 +94,17 @@ private:
     void handleCameraControl(const sf::Event& event);
     
     // Логика выбора и действий
-    void handleShipSelection(const sf::Vector2f& worldPos);
+    void handleTroopSelection(const sf::Vector2f& worldPos);
     void handleTargetSelection(const sf::Vector2f& worldPos);
-    void executeShipAction();
+    void executeTroopAction();
     bool isPointInHex(const sf::Vector2f& point, const gl::Hex& hex);
     
     // Обновление состояния игры
+    uint8_t nextAlivePlayer();
+    void nextTurn();
     void cleanupDestroyedShips();
     void updateVisibleCells();
+    void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Troop* troop, std::vector<gl::Hex>& hexMap, gl::RangeMode mode);
     
     // Рендеринг
     sf::RenderTexture mapLayer;
@@ -122,11 +162,11 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     sf::FloatRect getViewBounds();
 
     // Текстуры
-    sf::Texture player_ship_texture;
-    sf::Texture pirate_ship_texture;
-    sf::Texture enemy_ship_texture;
-    sf::Texture gold_texture;
-    sf::Texture treasure_texture;
+    // sf::Texture player_ship_texture;
+    // sf::Texture pirate_ship_texture;
+    // sf::Texture enemy_ship_texture;
+    // sf::Texture gold_texture;
+    // sf::Texture treasure_texture;
 
 
     // Все игроки и игровые сущности
@@ -139,7 +179,7 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     // std::vector<gl::Ship*> ships;
     // std::vector<gl::Hex*> seenCells;
     // std::vector<gl::Hex*> viewableHexes;
-    sf::Font font;
+    // sf::Font font;
 
     double deepWater;
     double water;
@@ -180,5 +220,3 @@ public:
     //     return &pirate; // Берем адрес объекта
     // }
 };
-
-// #endif

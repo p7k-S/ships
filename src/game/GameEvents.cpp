@@ -14,7 +14,7 @@ void Game::handleMouseButtonPressed(const sf::Event& event) {
         if (waitingForMove && selectedTroop) {
             handleTargetSelection(worldPos);
         } else {
-            handleShipSelection(worldPos);
+            handleTroopSelection(worldPos);
         }
     }
 }
@@ -93,20 +93,26 @@ void Game::handleKeyPressed(const sf::Event& event) {
         colSchemeInactive = (colSchemeInactive == DARK_COLORS) ? INVERT : DARK_COLORS;
     }
 
-    if (event.key.code == sf::Keyboard::Enter) {
-        if (waitingForMove && selectedTroop && targetHex) {
-            executeShipAction();
-            updateVisibleCells();
-            render();
-        }
-    }
+    // if (event.key.code == sf::Keyboard::Enter) {
+    //     if (waitingForMove && selectedTroop && targetHex && selectedTroop->getCell() != targetHex) {
+    //         executeShipAction();
+    //         updateVisibleCells();
+    //         render();
+    //     }
+    // }
 
     if (event.key.code == sf::Keyboard::F) {
         fullscreenMapMode = !fullscreenMapMode;
     }
     if (event.key.code == sf::Keyboard::G) {
-        isProcessingTurn = false;
-        std::cout << "Turn ended by player! " << p_id << std::endl;  // Добавь для отладки
+        std::cout << "Turn ended by player! " << (int)p_id << std::endl;  // Добавь для отладки
+        if (!isNetworkGame && !changeTurnLocal && playersAmount > 1) {
+            changeTurnLocal = true;
+        }
+        nextTurn();
+    }
+    if (event.key.code == sf::Keyboard::Space) {
+        changeTurnLocal = false;
     }
 
     handleCameraControl(event);

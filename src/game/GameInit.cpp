@@ -1,30 +1,29 @@
 #include "Game.h"
 // #include <iostream>
 #include "../render/ui/startUI.h"
+#include "../textures/EmbeddedResources.h"
 // #include "../render/Colors.hpp"
 
 bool Game::startMenu() {
+    std::cout << "DEBUG: startMenu() started" << std::endl;
     SimpleConfigUI configUI;
-    if (configUI.show()) {
-        // настройка перед стартом, если нужно
-    }
-    return true;
+    bool result = configUI.show();
+    std::cout << "DEBUG: startMenu() finished, returning: " << (result ? "true" : "false") << std::endl;
+    return result;
 }
 
 bool Game::initialize() {
-    if (!startMenu()) return false;
-
-    if (!font.loadFromFile(font_path)) {
-        std::cout << "Font not found, using default" << std::endl;
-    }
+    // if (!font.loadFromFile(font_path)) {
+    //     std::cout << "Font not found, using default" << std::endl;
+    // }
 
     defaultView = window.getDefaultView();
     mapView = defaultView;  // стартовая позиция карты такая же, как default
 
     generateMap();
     distributeCellTypes();
-    createPlayers();
-    createShips();
+    // createPlayers();
+    // createShips();
     placeGoldAndTreasures();
 
     return initializeWindow() && loadTextures();
@@ -40,12 +39,7 @@ bool Game::initializeWindow() {
 }
 
 bool Game::loadTextures() {
-    if (!player_ship_texture.loadFromFile("../src/textures/player_ship.png")) return false;
-    if (!pirate_ship_texture.loadFromFile("../src/textures/pirates_ship.png")) return false;
-    if (!enemy_ship_texture.loadFromFile("../src/textures/enemy_ship.png")) return false;
-    if (!gold_texture.loadFromFile("../src/textures/gold_cons.png")) return false;
-    if (!treasure_texture.loadFromFile("../src/textures/treasure.png")) return false;
-
+    if (!EmbeddedResources::loadAllResources()) return false;
     return true;
 }
 

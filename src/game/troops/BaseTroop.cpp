@@ -24,6 +24,10 @@ namespace GameLogic {
             if (!targetHex || !my_cell) return false;
             if (targetHex == my_cell) return false;
             if (targetHex->hasTroop()) return false;
+            if (targetHex->hasBuilding()) {
+                if (isEnemy(targetHex->getBuilding()->getOwner(), my_cell->getTroop()->getOwner()))
+                    return false;
+            }
 
             // std::vector<Hex*> reachable = cellsInRange(*my_cell, hexMap, getMoveRange(), RangeMode::MOVE);
             // for (Hex* cell : reachable)
