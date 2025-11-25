@@ -17,8 +17,10 @@ bool Game::initialize() {
     //     std::cout << "Font not found, using default" << std::endl;
     // }
 
-    defaultView = window.getDefaultView();
-    mapView = defaultView;  // стартовая позиция карты такая же, как default
+    uiView = window.getDefaultView(); // UI view всегда охватывает всё окно
+    mapView = sf::View(sf::FloatRect(0, 0, window.getSize().x, window.getSize().y)); // Для игрового мира
+    view = mapView; // Текущая камера (для обратной совместимости)
+    defaultView = mapView;
 
     generateMap();
     distributeCellTypes();

@@ -2,10 +2,66 @@
 #include <unordered_set>
 #include "../game/GameLogic.h"
 #include "../game/troops/Ship.h"
+#include "../game/buildings/Port.h"
 #include <sstream>
 
 
 namespace gl = GameLogic;
+
+inline void drawPortBar(sf::RenderWindow& window, gl::Port* port, float x, float y, float hexRadius, sf::Font& font, int font_size) {
+    if (!port) return;
+    
+    float healthPercent = static_cast<float>(port->getHealth()) / port->getMaxHealth();
+    float barWidth = hexRadius * 1.2f;
+    float barHeight = 4.0f;
+    
+    // Полоска HP
+    sf::RectangleShape background(sf::Vector2f(barWidth, barHeight));
+    background.setPosition(x - barWidth/2, y - hexRadius - 8);
+    background.setFillColor(sf::Color::Black);
+    window.draw(background);
+    
+    sf::RectangleShape healthBar(sf::Vector2f(barWidth * healthPercent, barHeight));
+    healthBar.setPosition(x - barWidth/2, y - hexRadius - 8);
+    healthBar.setFillColor(healthPercent > 0.5f ? sf::Color::Green : sf::Color::Red);
+    window.draw(healthBar);
+    
+    if (font.getInfo().family != "") {
+        // Функция для рисования текста с обводкой
+        auto drawTextWithOutline = [&](const std::string& str, float posX, float posY, sf::Color fillColor, int charSize) {
+            // Основной текст
+            sf::Text text;
+            text.setFont(font);
+            text.setString(str);
+            text.setCharacterSize(charSize);
+            text.setFillColor(fillColor);
+            text.setStyle(sf::Text::Bold);
+            text.setPosition(posX, posY);
+            
+            // Черная обводка (рисуем смещенные копии)
+            sf::Text outline = text;
+            outline.setFillColor(sf::Color::Black);
+            
+            // Рисуем обводку со смещениями
+            outline.setPosition(posX - 1, posY - 1); window.draw(outline);
+            outline.setPosition(posX + 1, posY - 1); window.draw(outline);
+            outline.setPosition(posX - 1, posY + 1); window.draw(outline);
+            outline.setPosition(posX + 1, posY + 1); window.draw(outline);
+            
+            // Рисуем основной текст поверх
+            window.draw(text);
+        };
+        
+        // Текст HP (зеленый)
+        std::string hpText = std::to_string(port->getHealth()) + "/" + std::to_string(port->getMaxHealth());
+        sf::FloatRect hpBounds = sf::Text(hpText, font, font_size).getLocalBounds();
+        float hpX = x - hpBounds.width/2;
+        float hpY = y - hexRadius - 20;
+        
+        // Рисуем HP с обводкой
+        drawTextWithOutline(hpText, hpX, hpY, sf::Color::Green, 10);
+    }
+}
 
 inline void drawShipBar(sf::RenderWindow& window, gl::Ship* ship, float x, float y, float hexRadius, sf::Font& font, int font_size) {
     if (!ship) return;

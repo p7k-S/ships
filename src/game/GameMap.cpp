@@ -5,6 +5,7 @@
 // #include "items/Gold.h"
 #include "items/Treasure.h"
 #include "buildings/Port.h" // или правильный путь к Port.h
+#include "troops/Soldier.h"
 #include <algorithm>
 #include <iostream>
 #include <unordered_set>
@@ -117,6 +118,9 @@ bool Game::portCanPlayced(const gl::Hex& h) {
     return hasLandNeighbor;
 }
 
+void Game::placingSoldiers(gl::Owner owner) {
+}
+
 void Game::createTroops() {
     std::vector<gl::Hex*> waterCells;
     for (auto& hex : hexMap) {
@@ -147,6 +151,21 @@ void Game::createTroops() {
             gl::Owner owner = players[i].get();
             auto port = std::make_unique<gl::Port>(owner, selectedHex);
             gl::Port* portPtr = port.get();
+
+            auto neighborCoords = gl::getNeighbors(*selectedHex);
+            for (auto& neighborHex : neighborCoords) {
+                int q = neighborHex.q;
+                int r = neighborHex.r;
+                if (hexMap[q + r * mapWidth].getCellType() == gl::CellType::LAND) {
+                    auto soldier = std::make_unique<gl::Soldier>(owner, selectedHex);
+                    gl::Soldier* soldierPtr = soldier.get();
+
+                    if (selectedHex->setTroopOf<gl::Soldier>(soldierPtr)) {
+                        players[i]->addTroop(std::move(soldier));
+                    }
+                    break;
+                }
+            }
 
             if (selectedHex->setBuildingOf<gl::Port>(portPtr)) {
                 players[i]->addBuilding(std::move(port));

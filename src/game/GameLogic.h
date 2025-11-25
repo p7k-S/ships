@@ -15,7 +15,7 @@ namespace GameLogic {
     class Troop;
     class Ship;
     class Cannon;
-    class Solder;
+    class Soldier;
     class Lighthouse;
 
     // entity type

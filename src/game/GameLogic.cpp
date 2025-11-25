@@ -6,6 +6,7 @@
 #include "../game/map/Cell.h"
 // #include "../game/troops/BaseTroop.h"
 // #include <cstdint>
+#include <cstdint>
 #include <iostream>
 
 void Game::handleTroopSelection(const sf::Vector2f& worldPos) {
@@ -46,6 +47,7 @@ void Game::executeTroopAction() {
         resetSelection();
         return;
     }
+    int8_t movesLeft = getMoveAmount();
 
     int fromQ = selectedHex->q;
     int fromR = selectedHex->r;
@@ -81,7 +83,19 @@ void Game::executeTroopAction() {
                 selectedTroop->giveDamageToBuilding(targetHex);
             }
     } else {
+        ++movesLeft;
         std::cout << "target hex is not in any range.\n";
+    }
+
+    --movesLeft;
+    setMoveAmount(movesLeft);
+    if (!getMoveAmount()) {
+        sf::Event event;
+        event.type = sf::Event::KeyPressed;
+        event.key.code = sf::Keyboard::G; // Любая клавиша
+
+        handleKeyPressed(event); // Вызов твоего существующего метода
+
     }
 
     resetSelection();

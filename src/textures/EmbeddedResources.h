@@ -8,8 +8,10 @@ public:
     
     // Текстуры
     static sf::Texture player_ship_texture;
+    static sf::Texture player_soldier_texture;
     static sf::Texture pirate_ship_texture;
     static sf::Texture enemy_ship_texture;
+    static sf::Texture enemy_soldier_texture;
     static sf::Texture port_texture;
     static sf::Texture gold_texture;
     static sf::Texture treasure_texture;

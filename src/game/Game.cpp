@@ -312,6 +312,7 @@ void Game::run() {
 
 
         if (isProcessingTurn) {
+            totalTurnCount++;
             isProcessingTurn = false;
             p_id = nextAlivePlayer();
 
@@ -330,24 +331,25 @@ void Game::run() {
 }
 
 uint8_t Game::nextAlivePlayer() {
-    totalTurnCount++;
-        std::cout << "=== DEBUG: Checking alive players ===" << std::endl;
-    for (uint8_t i = 0; i < playersAmount; ++i) {
-        std::cout << "Player " << (int)i << " - troops: " << players[i]->getTroops().size() 
-                  << ", buildings: " << players[i]->getBuildings().size()
-                  << ", isDead: " << players[i]->isDead() << std::endl;
-    }
+    //     std::cout << "=== DEBUG: Checking alive players ===" << std::endl;
+    // for (uint8_t i = 0; i < playersAmount; ++i) {
+    //     std::cout << "Player " << (int)i << " - troops: " << players[i]->getTroops().size() 
+    //               << ", buildings: " << players[i]->getBuildings().size()
+    //               << ", isDead: " << players[i]->isDead() << std::endl;
+    // }
 
     if (playersAmount > 1) {
         for (uint8_t i = 1; i < playersAmount; ++i) {
             uint8_t nextPlayer = (p_id + i) % playersAmount;
-            std::cout << "Checking player " << (int)nextPlayer << " - isDead: " << players[nextPlayer]->isDead() << std::endl;
+            // std::cout << "Checking player " << (int)nextPlayer << " - isDead: " << players[nextPlayer]->isDead() << std::endl;
 
-            if (!players[(p_id + i) % playersAmount]->isDead()) {
-                return (p_id + i) % playersAmount;
+            if (!players[nextPlayer]->isDead()) {
+                setMoveAmount(players[nextPlayer]->getTroops().size());
+                return nextPlayer;
             }
         }
         std::cout << "The winner is " << players[p_id]->getName() << "!!!" << std::endl;
+        --totalTurnCount;
         std::cout << "Game turns " << totalTurnCount << std::endl;
         std::exit(0);
     } else {

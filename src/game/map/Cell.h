@@ -48,6 +48,9 @@ namespace GameLogic {
 
 
         // items
+        uint16_t getItemsSize() const {
+            return items.size();
+        }
         template<typename T>
             T* getItemOf() const {
                 static_assert(std::is_base_of<Item, T>::value, "T must derive from Item");
@@ -118,7 +121,7 @@ namespace GameLogic {
                         return false;
                     }
                 }
-                else if constexpr (std::is_same_v<T, Solder>) {
+                else if constexpr (std::is_same_v<T, Soldier>) {
                     if (type <= CellType::WATER) {
                         return false;
                     }

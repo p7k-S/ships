@@ -3,8 +3,10 @@
 
 // Определяем статические текстуры
 sf::Texture EmbeddedResources::player_ship_texture;
+sf::Texture EmbeddedResources::player_soldier_texture;
 sf::Texture EmbeddedResources::pirate_ship_texture;
 sf::Texture EmbeddedResources::enemy_ship_texture;
+sf::Texture EmbeddedResources::enemy_soldier_texture;
 sf::Texture EmbeddedResources::port_texture;
 sf::Texture EmbeddedResources::gold_texture;
 sf::Texture EmbeddedResources::treasure_texture;
@@ -42,13 +44,19 @@ bool EmbeddedResources::loadAllResources() {
     if (!loadTexture(player_ship_texture, player_ship_png, player_ship_png_len, "player_ship")) {
         success = false;
     }
+    if (!loadTexture(player_soldier_texture, player_soldier_png, player_soldier_png_len, "player_soldier")) {
+        success = false;
+    }
     if (!loadTexture(pirate_ship_texture, pirates_ship_png, pirates_ship_png_len, "pirates_ship")) {
         success = false;
     }
     if (!loadTexture(enemy_ship_texture, enemy_ship_png, enemy_ship_png_len, "enemy_ship")) {
         success = false;
     }
-    if (!loadTexture(port_texture, port_png, port_png_len, "enemy_ship")) {
+    if (!loadTexture(enemy_soldier_texture, enemy_soldier_png, enemy_soldier_png_len, "enemy_soldier")) {
+        success = false;
+    }
+    if (!loadTexture(port_texture, port_png, port_png_len, "port")) {
         success = false;
     }
     if (!loadTexture(gold_texture, gold_cons_png, gold_cons_png_len, "gold_cons")) {

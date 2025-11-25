@@ -3,13 +3,33 @@
 #include "GameConfig.h"
 // #include <iostream>
 
-
 void Game::handleMouseButtonPressed(const sf::Event& event) {
     if (event.mouseButton.button == sf::Mouse::Left) {
-        isDragging = true;
-        lastMousePos = window.mapPixelToCoords(sf::Vector2i(event.mouseButton.x, event.mouseButton.y));
+        // Сначала проверяем UI клики
+        sf::Vector2f uiMousePos = window.mapPixelToCoords(
+            sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 
+            window.getDefaultView()
+        );
         
-        sf::Vector2f worldPos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+        if (isUIAreaClicked(uiMousePos)) {
+            handleUIClick(uiMousePos);
+            return;
+        }
+        
+        // Если не UI, начинаем драг и обрабатываем игровой мир
+        isDragging = true;
+        
+        // ✅ ЯВНО указываем view камеры для координат игрового мира
+        lastMousePos = window.mapPixelToCoords(
+            sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 
+            view  // ← используем view камеры
+        );
+        
+        // ✅ Для выбора юнитов тоже используем view камеры
+        sf::Vector2f worldPos = window.mapPixelToCoords(
+            sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 
+            view  // ← используем view камеры
+        );
         
         if (waitingForMove && selectedTroop) {
             handleTargetSelection(worldPos);
@@ -18,6 +38,7 @@ void Game::handleMouseButtonPressed(const sf::Event& event) {
         }
     }
 }
+
 void Game::handleMouseWheel(const sf::Event& event) {
     // Получаем положение курсора в окне
     sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
@@ -42,13 +63,22 @@ void Game::handleMouseWheel(const sf::Event& event) {
 
 void Game::handleMouseMove(const sf::Event& event) {
     if (isDragging) {
-        sf::Vector2f currentMousePos = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+        // ВСЕГДА явно указываем view камеры
+        sf::Vector2f currentMousePos = window.mapPixelToCoords(
+            sf::Vector2i(event.mouseMove.x, event.mouseMove.y), 
+            view  // ← ЯВНО указываем view камеры
+        );
+        
         sf::Vector2f delta = lastMousePos - currentMousePos;
         view.move(delta);
 
-
         window.setView(view);
-        lastMousePos = window.mapPixelToCoords(sf::Vector2i(event.mouseMove.x, event.mouseMove.y));
+        
+        // Обновляем lastMousePos с ТЕМ ЖЕ view
+        lastMousePos = window.mapPixelToCoords(
+            sf::Vector2i(event.mouseMove.x, event.mouseMove.y), 
+            view  // ← ЯВНО указываем view камеры
+        );
     }
 }
 
@@ -105,7 +135,7 @@ void Game::handleKeyPressed(const sf::Event& event) {
         fullscreenMapMode = !fullscreenMapMode;
     }
     if (event.key.code == sf::Keyboard::G) {
-        std::cout << "Turn ended by player! " << (int)p_id << std::endl;  // Добавь для отладки
+        std::cout << "Turn ended by player! " << (int)p_id + 1 << std::endl;  // Добавь для отладки
         if (!isNetworkGame && !changeTurnLocal && playersAmount > 1) {
             changeTurnLocal = true;
         }

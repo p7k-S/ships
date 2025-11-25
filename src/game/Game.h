@@ -24,7 +24,7 @@ public:
 
     uint8_t p_id = playersAmount;
     uint8_t my_pid = 0;
-    uint8_t move_amount = 0;
+    int8_t move_amount = 0;
     bool isProcessingTurn = true;
     // net
     std::unique_ptr<GameServer> gameServer;
@@ -49,10 +49,10 @@ private:
     void sendTroopAction(int fromQ, int fromR, int toQ, int toR);
     void executeNetworkAction(const std::string& msg);
 
-    uint8_t getMoveAmount(uint8_t moves) const {
+    int8_t getMoveAmount() const {
         return move_amount;
     }
-    void setMoveAmount(uint8_t moves) {
+    void setMoveAmount(int8_t moves) {
         move_amount = moves;
     }
     void sendGameStateUpdate();
@@ -82,6 +82,7 @@ private:
     void generateMap();
     void distributeCellTypes();
     void createTroops();
+    void placingSoldiers(gl::Owner owner);
     bool portCanPlayced(const gl::Hex& h);
     void createPlayers();
     void placeGoldAndTreasures();
@@ -117,11 +118,11 @@ private:
     sf::RenderTexture mapSeenLayer;
     std::size_t cachedSeenCount = 0;
 
-// Новые методы
-void rebuildSeenMapLayer();
-void renderVisibleCells();
-void renderDynamicObjects();
-sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
+    // Новые методы
+    void rebuildSeenMapLayer();
+    void renderVisibleCells();
+    void renderDynamicObjects();
+    sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
 
 
     // Методы
@@ -135,7 +136,7 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     void renderShipRange();
     void renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor);
     void renderPath();
-    void renderShipUI();
+    void renderBars();
     void renderBottomStatsBar();
     void renderCellInfoPanel();
 
@@ -148,6 +149,15 @@ sf::Color blendColors(const sf::Color& base, const sf::Color& overlay);
     void resetSelection();
 
     std::vector<gl::Hex> hexMap;
+
+
+    void renderSidebar();
+    void renderBottomBar();
+    void renderUI(); // основной метод для всего UI
+
+    // Методы для обработки UI кликов
+    bool isUIAreaClicked(const sf::Vector2f& mousePos);
+    void handleUIClick(const sf::Vector2f& mousePos);
 
     sf::RenderWindow window;
     sf::View view;

@@ -16,35 +16,177 @@
 // #include "../render/ui/UIRenderer.h"
 #include "../textures/EmbeddedResources.h"
 
+// Рендерим весь UI
+void Game::renderUI() {
+    renderSidebar();
+    renderBottomBar();
+}
+
+// Рендерим боковую панель
+void Game::renderSidebar() {
+    int windowWidth = window.getSize().x;
+    int windowHeight = window.getSize().y;
+    
+    // Фон сайдбара
+    sf::RectangleShape sidebar(sf::Vector2f(250, windowHeight));
+    sidebar.setPosition(windowWidth - 250, 0);
+    sidebar.setFillColor(sf::Color(30, 30, 40, 230));
+    window.draw(sidebar);
+    
+    // Заголовок
+    sf::Text title("CELL INFO", EmbeddedResources::main_font, 20);
+    title.setPosition(windowWidth - 240, 20);
+    title.setFillColor(sf::Color::White);
+    window.draw(title);
+    
+    // Информация о клетке под курсором
+    sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+    sf::Vector2f worldPos = window.mapPixelToCoords(mousePos, view);
+    gl::Hex* hoveredHex = selectedHex;
+    
+    if (hoveredHex) {
+        int yPos = 60;
+        
+        // Координаты
+        sf::Text coordText("Coord: (" + std::to_string(hoveredHex->q) + "," + std::to_string(hoveredHex->r) + ")", EmbeddedResources::main_font, 14);
+        coordText.setPosition(windowWidth - 240, yPos);
+        coordText.setFillColor(sf::Color::White);
+        window.draw(coordText);
+        yPos += 25;
+        
+        // Тип клетки
+        sf::Text typeText("Type: " + std::to_string(static_cast<int>(hoveredHex->getCellType())), EmbeddedResources::main_font, 14);
+        typeText.setPosition(windowWidth - 240, yPos);
+        typeText.setFillColor(sf::Color::White);
+        window.draw(typeText);
+        yPos += 25;
+        
+        // Золото
+        sf::Text goldText("Gold: " + std::to_string(hoveredHex->getGold()), EmbeddedResources::main_font, 14);
+        goldText.setPosition(windowWidth - 240, yPos);
+        goldText.setFillColor(sf::Color::Yellow);
+        window.draw(goldText);
+        yPos += 25;
+        
+        // Шум
+        sf::Text noiseText("Noise: " + std::to_string(hoveredHex->getNoise()), EmbeddedResources::main_font, 14);
+        noiseText.setPosition(windowWidth - 240, yPos);
+        noiseText.setFillColor(sf::Color::White);
+        window.draw(noiseText);
+        yPos += 25;
+        
+        // Юнит
+        if (hoveredHex->hasTroop()) {
+            sf::Text troopText("Has Unit", EmbeddedResources::main_font, 14);
+            troopText.setPosition(windowWidth - 240, yPos);
+            troopText.setFillColor(sf::Color::Green);
+            window.draw(troopText);
+            yPos += 25;
+        }
+        
+        // Здание
+        if (hoveredHex->hasBuilding()) {
+            sf::Text buildingText("Has Building", EmbeddedResources::main_font, 14);
+            buildingText.setPosition(windowWidth - 240, yPos);
+            buildingText.setFillColor(sf::Color::Magenta);
+            window.draw(buildingText);
+            yPos += 25;
+        }
+        
+        // Предметы
+        sf::Text itemsText("Items: " + std::to_string(hoveredHex->getItemsSize()), EmbeddedResources::main_font, 14);
+        itemsText.setPosition(windowWidth - 240, yPos);
+        itemsText.setFillColor(sf::Color::Cyan);
+        window.draw(itemsText);
+    }
+}
+
+// Рендерим нижнюю панель
+void Game::renderBottomBar() {
+    int windowWidth = window.getSize().x;
+    int windowHeight = window.getSize().y;
+    
+    // Фон нижней панели
+    sf::RectangleShape bottomBar(sf::Vector2f(windowWidth, 80));
+    bottomBar.setPosition(0, windowHeight - 80);
+    bottomBar.setFillColor(sf::Color(25, 25, 35, 230));
+    window.draw(bottomBar);
+    
+    // Счетчик ходов
+    sf::Text turnText("Turn: " + std::to_string(totalTurnCount), EmbeddedResources::main_font, 18);
+    turnText.setPosition(20, windowHeight - 50);
+    turnText.setFillColor(sf::Color::White);
+    window.draw(turnText);
+    
+    // Информация о текущем игроке
+    sf::Text playerText("Player: " + std::to_string(static_cast<int>(p_id) + 1), EmbeddedResources::main_font, 18);
+    playerText.setPosition(150, windowHeight - 50);
+    playerText.setFillColor(sf::Color::Green);
+    window.draw(playerText);
+    
+    // Подсказка управления
+    sf::Text controls("G - End Turn | F - Fullscreen | C - Color Scheme", EmbeddedResources::main_font, 14);
+    controls.setPosition(windowWidth - 400, windowHeight - 30);
+    controls.setFillColor(sf::Color(200, 200, 200));
+    window.draw(controls);
+}
+
+// Проверка кликов по UI
+bool Game::isUIAreaClicked(const sf::Vector2f& mousePos) {
+    int windowWidth = window.getSize().x;
+    int windowHeight = window.getSize().y;
+    
+    // Правая панель (последние 250 пикселей)
+    if (mousePos.x > windowWidth - 250) {
+        return true;
+    }
+    
+    // Нижняя панель (последние 80 пикселей)
+    if (mousePos.y > windowHeight - 80) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Обработка UI кликов
+void Game::handleUIClick(const sf::Vector2f& mousePos) {
+    int windowWidth = window.getSize().x;
+    int windowHeight = window.getSize().y;
+    
+    // Клик по сайдбару
+    if (mousePos.x > windowWidth - 250) {
+        // Можно добавить кнопки в сайдбаре
+        std::cout << "Sidebar clicked" << std::endl;
+    }
+    
+    // Клик по нижней панели
+    if (mousePos.y > windowHeight - 80) {
+        // Можно добавить кнопки в нижней панели
+        std::cout << "Bottom bar clicked" << std::endl;
+    }
+}
+
 void Game::render() {
     window.clear(sf::Color(20, 20, 20));
 
-    // 1️⃣ Устанавливаем карту, если режим полноэкранный
-    // if (fullscreenMapMode) {
-    //     window.setView(mapView);
-    // } else {
-        // UIRenderer::renderSidebar(window, font, "lolo");
-        // UIRenderer::renderBottomBar(window, font, totalTurnCount);
-        // renderCellInfoPanel();
-        // renderBottomStatsBar();
-    // }
-
-    // 2️⃣ Основные компоненты рендеринг
+    // 1️⃣ Рендерим игровой мир с камерой
+    window.setView(view);
+    
     updateVisibleCells();
-    renderMap(); // отрисовка видимых клеток
+    renderMap();
     renderShipRange();
-    // renderPath();
-    renderShipUI(); // отрисовка бара у кораблей
+    renderBars();
 
-    // 3️⃣ Вернуть стандартный view, чтобы UI рисовался в фиксированных координатах экрана
-    // window.setView(window.getDefaultView());
-
-    // Отрисовка UI
+    // 2️⃣ Рендерим UI с дефолтным видом
+    window.setView(window.getDefaultView());
+    renderUI();
 
     window.display();
 }
 
 void Game::renderWaitMove() {
+    window.setView(window.getDefaultView());
     window.clear(sf::Color(20, 20, 20));
 
     sf::Text text;
@@ -260,18 +402,19 @@ void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sp
     }
 }
 
-void Game::renderShipUI() {
+void Game::renderBars() {
     std::vector<gl::Hex*> view_cells = players[p_id]->getViewableCells();
     for (const auto& hexp : players[p_id]->getSeenCells()) {
         const auto& hex = *hexp;
         bool isVisible = std::find(view_cells.begin(), view_cells.end(), hexp) != view_cells.end();
         
-        if (hex.hasTroop() && isVisible) {
+        if ((hex.hasTroop() || hex.hasBuilding()) && isVisible) {
             double x_pos = hex.q * hexRadius * 1.5;
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             
             if (colSchemeDefault == COLORFULL) {
                 drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
+                drawPortBar(window, static_cast<gl::Port*>(hex.getBuilding()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
             }
         }
     }
