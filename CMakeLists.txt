@@ -14,12 +14,20 @@ find_package(SFML 2.5 REQUIRED graphics window system network)
 #     COMMAND echo "// Embedded resources - generated automatically" > src/textures/embedded_resources.h
 #     COMMAND echo "#pragma once" >> src/textures/embedded_resources.h
 #     COMMAND echo "" >> src/textures/embedded_resources.h
+#
 #     COMMAND xxd -i src/textures/player_ship.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h
 #     COMMAND echo "" >> src/textures/embedded_resources.h
+#     COMMAND xxd -i src/textures/player_soldier.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h
+#     COMMAND echo "" >> src/textures/embedded_resources.h
+#
 #     COMMAND xxd -i src/textures/pirates_ship.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h
 #     COMMAND echo "" >> src/textures/embedded_resources.h
+#
 #     COMMAND xxd -i src/textures/enemy_ship.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h
 #     COMMAND echo "" >> src/textures/embedded_resources.h
+#     COMMAND xxd -i src/textures/enemy_soldier.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h
+#     COMMAND echo "" >> src/textures/embedded_resources.h
+#
 #     COMMAND xxd -i src/textures/port.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h
 #     COMMAND echo "" >> src/textures/embedded_resources.h
 #     COMMAND xxd -i src/textures/gold_cons.png | sed 's/src_textures_//g' >> src/textures/embedded_resources.h

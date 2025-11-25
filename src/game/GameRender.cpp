@@ -30,7 +30,7 @@ void Game::renderSidebar() {
     // Фон сайдбара
     sf::RectangleShape sidebar(sf::Vector2f(250, windowHeight));
     sidebar.setPosition(windowWidth - 250, 0);
-    sidebar.setFillColor(sf::Color(30, 30, 40, 230));
+    sidebar.setFillColor(sf::Color(30, 30, 40));
     window.draw(sidebar);
     
     // Заголовок
@@ -109,7 +109,7 @@ void Game::renderBottomBar() {
     // Фон нижней панели
     sf::RectangleShape bottomBar(sf::Vector2f(windowWidth, 80));
     bottomBar.setPosition(0, windowHeight - 80);
-    bottomBar.setFillColor(sf::Color(25, 25, 35, 230));
+    bottomBar.setFillColor(sf::Color(25, 25, 35));
     window.draw(bottomBar);
     
     // Счетчик ходов
@@ -119,13 +119,24 @@ void Game::renderBottomBar() {
     window.draw(turnText);
     
     // Информация о текущем игроке
-    sf::Text playerText("Player: " + std::to_string(static_cast<int>(p_id) + 1), EmbeddedResources::main_font, 18);
+    sf::Text playerText("Player: " + 
+            players[p_id]->getName(),
+            EmbeddedResources::main_font, 18);
     playerText.setPosition(150, windowHeight - 50);
-    playerText.setFillColor(sf::Color::Green);
+    playerText.setFillColor(players[p_id]->getColor());
     window.draw(playerText);
+
+    // Информация % карты 
+    sf::Text exploredText("Explored: " + 
+            std::to_string((players[p_id]->getSeenCells().size()*100/(mapHeight*mapWidth))) + "%"
+            , EmbeddedResources::main_font, 18);
+    exploredText.setPosition(350, windowHeight - 50);
+    exploredText.setFillColor(COLORS["deep_yellow"]);
+    window.draw(exploredText);
     
     // Подсказка управления
-    sf::Text controls("G - End Turn | F - Fullscreen | C - Color Scheme", EmbeddedResources::main_font, 14);
+    // sf::Text controls("G - End Turn | F - Fullscreen | C - Color Scheme", EmbeddedResources::main_font, 14);
+    sf::Text controls("G - End Turn | C - Color Scheme", EmbeddedResources::main_font, 14);
     controls.setPosition(windowWidth - 400, windowHeight - 30);
     controls.setFillColor(sf::Color(200, 200, 200));
     window.draw(controls);
@@ -253,7 +264,7 @@ sf::FloatRect Game::getViewBounds() {
     sf::View currentView = window.getView();
     sf::Vector2f center = currentView.getCenter();
     sf::Vector2f size = currentView.getSize();
-    return sf::FloatRect(center.x - size.x/2, center.y - size.y/2, size.x, size.y);
+    return sf::FloatRect(center.x - size.x/2 - 30, center.y - size.y/2 - 30, size.x, size.y);
 }
 
 void Game::renderPath() {
