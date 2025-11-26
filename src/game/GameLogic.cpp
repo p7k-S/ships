@@ -71,6 +71,13 @@ void Game::executeTroopAction() {
 
     if (selectedTroop->canMoveTo(targetHex) && std::find(reachableHexes.begin(), reachableHexes.end(), targetHex)!= reachableHexes.end()) {
         selectedTroop->moveTo(targetHex);
+        std::cout << "DEBUG: After move - troop cell: " 
+            << (selectedTroop->getCell() ? "exists" : "nullptr") << std::endl;
+        std::cout << "DEBUG: After move - troop in player list: " 
+            << players[p_id]->getTroops().size() << std::endl;
+        std::cout << "DEBUG: After move - troop on target cell: " 
+            << (targetHex->getTroop() == selectedTroop) << std::endl;
+
         selectedTroop->takeGoldFromCell(targetHex);
         addViewedCells(players[p_id]->getSeenCells(), selectedTroop, hexMap, gl::RangeMode::VIEW);
         // updateVisibleCells();
@@ -95,7 +102,6 @@ void Game::executeTroopAction() {
         event.key.code = sf::Keyboard::G; // Любая клавиша
 
         handleKeyPressed(event); // Вызов твоего существующего метода
-
     }
 
     resetSelection();

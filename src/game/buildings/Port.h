@@ -25,6 +25,8 @@ namespace GameLogic {
             Port(Owner owner, Hex* currCell):
                 Building(owner, currCell) {}
 
+        Type getType() const override { return Type::PORT; }
+
         // Геттеры
         uint8_t getView() const override { return view; }
         uint16_t getHealth() const override { return health; }

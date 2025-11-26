@@ -5,6 +5,8 @@
 
 #include "map/GenerateMap.h"
 #include "map/Cell.h"
+#include "troops/Ship.h"
+#include "troops/Soldier.h"
 
 #include "GameLogic.h"
 #include "items/Treasure.h" // Добавьте этот include
@@ -318,7 +320,13 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
         }
 
         if (hasTroop) {
-            renderShipOnHex(hex, hexShape, sprite);
+            gl::Troop* troop = hex.getTroop();
+            if (troop && typeid(*troop) == typeid(gl::Ship)) {
+                renderShipOnHex(hex, hexShape, sprite);
+            }
+            else if (troop && typeid(*troop) == typeid(gl::Soldier)) {
+                renderSoldierOnHex(hex, hexShape, sprite);
+            }
         }
         else if (hasBuilding) {
             sprite.setTexture(EmbeddedResources::port_texture);
@@ -386,6 +394,28 @@ void Game::renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineCo
     window.draw(rangeShape);
 }
 
+void Game::renderSoldierOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite) {
+    auto* troop = hex.getTroop();
+    if (!troop) return;
+    auto troopOwner = troop->getOwner();
+
+    if (isPlayerOwner(troopOwner)) {
+        shipSprite.setTexture(EmbeddedResources::player_soldier_texture);
+        hexShape.setOutlineColor(std::get<GameLogic::Player*>(troopOwner)->getColor());
+    } else if (isEnemyOwner(troopOwner)) {
+        shipSprite.setTexture(EmbeddedResources::enemy_soldier_texture);
+        hexShape.setOutlineColor(COLORS["burgundy"]);
+    }
+    
+    if (colSchemeDefault == INVERT) {
+        if (isEnemyOwner(troopOwner)) {
+                    hexShape.setFillColor(COLORS["burgundy"]);
+        } else if (isPlayerOwner(troopOwner)) {
+                    hexShape.setFillColor(std::get<GameLogic::Player*>(troopOwner)->getColor());
+        }
+    }
+}
+
 void Game::renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite) {
     auto* troop = hex.getTroop();
     if (!troop) return;
@@ -424,8 +454,13 @@ void Game::renderBars() {
             double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
             
             if (colSchemeDefault == COLORFULL) {
-                drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
-                drawPortBar(window, static_cast<gl::Port*>(hex.getBuilding()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
+                if (hex.hasTroop() && hex.hasBuilding()) {
+                    drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
+                    drawPortBar(window, static_cast<gl::Port*>(hex.getBuilding()), x_pos + 50, y_pos + 100, hexRadius, EmbeddedResources::main_font, font_size);
+                } else {
+                    drawShipBar(window, static_cast<gl::Ship*>(hex.getTroop()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
+                    drawPortBar(window, static_cast<gl::Port*>(hex.getBuilding()), x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
+                }
             }
         }
     }

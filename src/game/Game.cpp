@@ -331,12 +331,12 @@ void Game::run() {
 }
 
 uint8_t Game::nextAlivePlayer() {
-    //     std::cout << "=== DEBUG: Checking alive players ===" << std::endl;
-    // for (uint8_t i = 0; i < playersAmount; ++i) {
-    //     std::cout << "Player " << (int)i << " - troops: " << players[i]->getTroops().size() 
-    //               << ", buildings: " << players[i]->getBuildings().size()
-    //               << ", isDead: " << players[i]->isDead() << std::endl;
-    // }
+    std::cout << "=== DEBUG: Checking alive players ===" << std::endl;
+    for (uint8_t i = 0; i < playersAmount; ++i) {
+        std::cout << "Player " << (int)i << " - troops: " << players[i]->getTroops().size() 
+            << ", buildings: " << players[i]->getBuildings().size()
+            << ", isDead: " << players[i]->isDead() << std::endl;
+    }
 
     if (playersAmount > 1) {
         for (uint8_t i = 1; i < playersAmount; ++i) {

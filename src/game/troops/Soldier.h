@@ -37,6 +37,7 @@ namespace GameLogic {
                 // item(nullptr)
         {}
 
+            Type getType() const override { return Type::SOLDIER; }
 
             // bool areNeighbors(Hex* h1, Hex* h2);
             
@@ -175,7 +176,6 @@ namespace GameLogic {
 
 
             // move
-            // В классе Ship
             virtual void moveTo(Hex* targetHex) override {
                 if (!targetHex || !canMoveTo(targetHex)) return;
 

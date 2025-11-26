@@ -9,7 +9,8 @@
 #include "../items/Gold.h"
 
 #include "../troops/BaseTroop.h"
-#include "../buildings/BaseBuild.h"
+// #include "../buildings/BaseBuild.h"
+#include "../buildings/Port.h"
 #include "../GameConfig.h"
 
 namespace GameLogic {
@@ -122,7 +123,8 @@ namespace GameLogic {
                     }
                 }
                 else if constexpr (std::is_same_v<T, Soldier>) {
-                    if (type <= CellType::WATER) {
+                    auto build = getBuilding();
+                    if (type <= CellType::WATER && typeid(*build) != typeid(Port)) {
                         return false;
                     }
                 }
@@ -183,6 +185,9 @@ namespace GameLogic {
         void setCellType(CellType t) { type = t; }
         bool isLand() const {
             return type == CellType::LAND || type == CellType::FOREST;
+        }
+        bool isWater() const {
+            return type == CellType::WATER || type == CellType::DEEPWATER;
         }
 
         // перегрууууууузкаааааааааа 5G

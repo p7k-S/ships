@@ -118,9 +118,6 @@ bool Game::portCanPlayced(const gl::Hex& h) {
     return hasLandNeighbor;
 }
 
-void Game::placingSoldiers(gl::Owner owner) {
-}
-
 void Game::createTroops() {
     std::vector<gl::Hex*> waterCells;
     for (auto& hex : hexMap) {
@@ -156,14 +153,24 @@ void Game::createTroops() {
             for (auto& neighborHex : neighborCoords) {
                 int q = neighborHex.q;
                 int r = neighborHex.r;
-                if (hexMap[q + r * mapWidth].getCellType() == gl::CellType::LAND) {
-                    auto soldier = std::make_unique<gl::Soldier>(owner, selectedHex);
-                    gl::Soldier* soldierPtr = soldier.get();
 
-                    if (selectedHex->setTroopOf<gl::Soldier>(soldierPtr)) {
-                        players[i]->addTroop(std::move(soldier));
+                // Проверяем границы как в portCanPlayced
+                if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
+                    int index = q + r * mapWidth;
+                    if (index >= 0 && index < hexMap.size() && 
+                            hexMap[index].getCellType() == gl::CellType::LAND) {
+
+                        // Размещаем Soldier на ЗЕМЛЕ, а не на воде!
+                        auto soldier = std::make_unique<gl::Soldier>(owner, &hexMap[index]);
+                        gl::Soldier* soldierPtr = soldier.get();
+
+                        if (hexMap[index].setTroopOf<gl::Soldier>(soldierPtr)) {
+                            players[i]->addTroop(std::move(soldier));
+                            std::cout << "DEBUG: Soldier created for player " << i 
+                                << " at LAND cell (" << q << "," << r << ")" << std::endl;
+                            break;
+                        }
                     }
-                    break;
                 }
             }
 

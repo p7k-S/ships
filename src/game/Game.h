@@ -133,6 +133,7 @@ private:
     void renderMap();
     void renderHex(const gl::Hex& hex, float x_pos, float y_pos);
     void renderShipOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite);
+    void renderSoldierOnHex(const gl::Hex& hex, sf::ConvexShape& hexShape, sf::Sprite& shipSprite);
     void renderShipRange();
     void renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor);
     void renderPath();

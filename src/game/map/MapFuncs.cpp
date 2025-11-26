@@ -2,7 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include "../GameLogic.h"
 #include "../map/Cell.h"
-// #include "../troops/Ship.h"
+#include "../troops/Ship.h"
+#include "../buildings/Port.h"
+#include "../troops/Soldier.h"
 // #include <queue>
 #include <climits>
 #include <unordered_map>
@@ -37,81 +39,130 @@ namespace GameLogic {
     }
 
     // mode = attack/view/move
-    std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode)
-    {
-        if (!(start.hasTroop() || start.hasBuilding())) return {};
+std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode)
+{
+    if (!(start.hasTroop() || start.hasBuilding())) return {};
 
-        std::vector<Hex*> reachable;
+    std::vector<Hex*> reachable;
 
-        // --- Быстрый поиск хекса по координатам ---
-        auto key = [](int q, int r) -> uint32_t {
-            return (static_cast<uint32_t>(q) << 16) | (static_cast<uint32_t>(r) & 0xFFFFu);
-        };
-        std::unordered_map<uint32_t, Hex*> lookup;
-        lookup.reserve(hexMap.size() * 2);
-        for (auto& h : hexMap)
-            lookup[key(h.q, h.r)] = &h;
+    // --- Определяем тип troop ---
+    Troop* startTroop = start.getTroop();
+    bool isShip = false;
+    bool isSoldier = false;
+    
+    if (startTroop) {
+        if (typeid(*startTroop) == typeid(Ship)) {
+            isShip = true;
+        } else if (typeid(*startTroop) == typeid(Soldier)) {
+            isSoldier = true;
+        }
+    }
 
-        auto getHexAt = [&](int q, int r) -> Hex* {
-            auto it = lookup.find(key(q, r));
-            return it != lookup.end() ? it->second : nullptr;
-        };
+    // --- Быстрый поиск хекса по координатам ---
+    auto key = [](int q, int r) -> uint32_t {
+        return (static_cast<uint32_t>(q) << 16) | (static_cast<uint32_t>(r) & 0xFFFFu);
+    };
+    std::unordered_map<uint32_t, Hex*> lookup;
+    lookup.reserve(hexMap.size() * 2);
+    for (auto& h : hexMap)
+        lookup[key(h.q, h.r)] = &h;
 
-        // --- Стоимость перемещения до клетки ---
-        std::unordered_map<Hex*, int> moveCost;
-        moveCost[&start] = 0;
+    auto getHexAt = [&](int q, int r) -> Hex* {
+        auto it = lookup.find(key(q, r));
+        return it != lookup.end() ? it->second : nullptr;
+    };
 
-        std::queue<Hex*> q;
-        q.push(&start);
-        reachable.push_back(&start);
+    // --- Вспомогательная функция для проверки порта ---
+    auto hasPort = [](Hex* hex) -> bool {
+        if (!hex || !hex->hasBuilding()) return false;
+        Building* building = hex->getBuilding();
+        return typeid(*building) == typeid(Port);
+    };
 
-        while (!q.empty()) {
-            Hex* current = q.front();
-            q.pop();
+    // --- Стоимость перемещения до клетки ---
+    std::unordered_map<Hex*, int> moveCost;
+    moveCost[&start] = 0;
 
-            int currentMoveCost = moveCost[current];
-            if (currentMoveCost >= maxMoves) continue;
+    std::queue<Hex*> q;
+    q.push(&start);
+    reachable.push_back(&start);
 
-            // Получаем направления в зависимости от четности столбца
-            const auto& directions = (current->q % 2 == 0) ? DIRECTIONS_EVEN : DIRECTIONS_ODD;
+    while (!q.empty()) {
+        Hex* current = q.front();
+        q.pop();
 
-            for (auto [dq, dr] : directions) {
-                int nextQ = current->q + dq;
-                int nextR = current->r + dr;
+        int currentMoveCost = moveCost[current];
+        if (currentMoveCost >= maxMoves) continue;
 
-                Hex* neighbor = getHexAt(nextQ, nextR);
-                if (!neighbor) continue; // Клетка за пределами карты
-                if (neighbor->isLand() && mode != RangeMode::VIEW) continue; // Земля непроходима
-                if (neighbor->hasTroop() && mode == RangeMode::MOVE) continue; // корабль не проходится на сквозь
+        // Получаем направления в зависимости от четности столбца
+        const auto& directions = (current->q % 2 == 0) ? DIRECTIONS_EVEN : DIRECTIONS_ODD;
 
-                // Определяем стоимость перемещения в зависимости от типа клетки
-                int terrainCost = (neighbor->getCellType() == CellType::DEEPWATER) ? 2 : 1;
-                if (mode == RangeMode::VIEW) terrainCost = 1;
-                int totalCost = currentMoveCost + terrainCost;
+        for (auto [dq, dr] : directions) {
+            int nextQ = current->q + dq;
+            int nextR = current->r + dr;
 
-                // Если можем добраться до клетки и это новый или более дешевый путь
-                if (totalCost <= maxMoves) {
-                    auto it = moveCost.find(neighbor);
-                    if (it == moveCost.end() || totalCost < it->second) {
-                        moveCost[neighbor] = totalCost;
-                        q.push(neighbor);
+            Hex* neighbor = getHexAt(nextQ, nextR);
+            if (!neighbor) continue; // Клетка за пределами карты
+            
+            // --- ПРОВЕРКИ ПРОХОДИМОСТИ В ЗАВИСИМОСТИ ОТ ТИПА ---
+            if (mode != RangeMode::VIEW) {
+                if (isShip) {
+                    // Корабли могут перемещаться только по воде
+                    if (!neighbor->isWater()) continue;
+                } else if (isSoldier) {
+                    // Солдаты могут перемещаться по земле И по воде с портом
+                    if (!neighbor->isLand() && !(neighbor->isWater() && hasPort(neighbor))) {
+                        continue;
+                    }
+                } else {
+                    // Для других типов или если troop не определен
+                    if (neighbor->isLand()) continue; // сохраняем старую логику
+                }
+            }
+            
+            if (neighbor->hasTroop() && mode == RangeMode::MOVE) continue; // корабль не проходится на сквозь
 
-                        // Добавляем в результат если еще не добавлен
-                        if (std::find(reachable.begin(), reachable.end(), neighbor) == reachable.end()) {
-                            reachable.push_back(neighbor);
-                        }
+            // --- ОПРЕДЕЛЕНИЕ СТОИМОСТИ ПЕРЕМЕЩЕНИЯ ---
+            int terrainCost = 1;
+            if (mode != RangeMode::VIEW) {
+                if (isShip) {
+                    // Для корабля: DEEPWATER = 2, обычная вода = 1
+                    terrainCost = (neighbor->getCellType() == CellType::DEEPWATER) ? 2 : 1;
+                } else if (isSoldier) {
+                    // Для солдата: 
+                    if (neighbor->isLand()) {
+                        // На земле: FOREST = 2, остальное = 1
+                        terrainCost = (neighbor->getCellType() == CellType::FOREST) ? 2 : 1;
+                    } else {
+                        // На воде с портом: всегда 1 (или можно сделать 2 для баланса)
+                        terrainCost = 1;
+                    }
+                } else {
+                    // Для других типов сохраняем старую логику
+                    terrainCost = (neighbor->getCellType() == CellType::DEEPWATER) ? 2 : 1;
+                }
+            }
+
+            int totalCost = currentMoveCost + terrainCost;
+
+            // Если можем добраться до клетки и это новый или более дешевый путь
+            if (totalCost <= maxMoves) {
+                auto it = moveCost.find(neighbor);
+                if (it == moveCost.end() || totalCost < it->second) {
+                    moveCost[neighbor] = totalCost;
+                    q.push(neighbor);
+
+                    // Добавляем в результат если еще не добавлен
+                    if (std::find(reachable.begin(), reachable.end(), neighbor) == reachable.end()) {
+                        reachable.push_back(neighbor);
                     }
                 }
             }
         }
-
-        // if (mode != RangeMode::VIEW) {
-        //     reachable.erase(std::remove(reachable.begin(), reachable.end(), &start), reachable.end());
-        // }
-
-        return reachable;
     }
 
+    return reachable;
+}
 
     // Хэш-функция для Hex
     struct HexHash {

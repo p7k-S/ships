@@ -8,6 +8,9 @@ namespace GameLogic {
         public:
             Building(Owner my_owner, Hex* cell) : owner(my_owner), curCell(cell) {}
 
+            enum class Type { PORT };
+            virtual Type getType() const = 0;
+
             // cell
             void setCell(Hex* cell) { curCell = cell; }
             Hex* getCell() const { return curCell; }

@@ -43,6 +43,7 @@ namespace GameLogic {
                 // item(nullptr)
         {}
 
+            Type getType() const override { return Type::SHIP; }
 
             // bool areNeighbors(Hex* h1, Hex* h2);
             

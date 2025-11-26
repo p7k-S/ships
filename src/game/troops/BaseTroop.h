@@ -10,6 +10,9 @@ namespace GameLogic {
         Troop(Owner my_owner, Hex* cell) : owner(my_owner), curCell(cell) {}
         virtual ~Troop() = default;  // Добавьте виртуальный деструктор
 
+        enum class Type { SOLDIER, SHIP };
+        virtual Type getType() const = 0;
+
         // cell
         void setCell(Hex* cell) { curCell = cell; }
         Hex* getCell() const { return curCell; }
