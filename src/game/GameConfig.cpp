@@ -46,7 +46,7 @@ std::unordered_map<std::string, sf::Color> COLORS = {
     {"brown", sf::Color(150, 75, 0)},
 
     // entity colors
-    {"enemy", sf::Color(255, 0, 0)}, // red
+    {"enemy", sf::Color(150, 30, 70)}, // red
     {"pirate", sf::Color(0, 0, 0)}, // black
     
     // Other colors

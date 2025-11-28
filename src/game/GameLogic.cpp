@@ -85,6 +85,9 @@ void Game::executeTroopAction() {
     } else if (std::find(attackRangeHexes.begin(), attackRangeHexes.end(), targetHex) != attackRangeHexes.end()) {
             if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())) {
                 selectedTroop->giveDamageToTroop(targetHex);
+                // auto t = targetHex->getTroop();
+                // std::cout << "TTTTTTTTTTTTTTT\n";
+                // t->giveDamageToTroop(selectedHex);
             } else
             if (targetHex->hasBuilding() && isEnemy(targetHex->getBuilding()->getOwner(), selectedTroop->getOwner())) {
                 selectedTroop->giveDamageToBuilding(targetHex);

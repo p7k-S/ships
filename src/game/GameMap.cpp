@@ -222,6 +222,28 @@ void Game::createTroops() {
             gl::Owner owner = static_cast<gl::Owner>(&enemy);
             auto port = std::make_unique<gl::Port>(owner, selectedHex);
             gl::Port* portPtr = port.get();
+            auto neighborCoords = gl::getNeighbors(*selectedHex);
+            for (auto& neighborHex : neighborCoords) {
+                int q = neighborHex.q;
+                int r = neighborHex.r;
+
+                // Проверяем границы как в portCanPlayced
+                if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
+                    int index = q + r * mapWidth;
+                    if (index >= 0 && index < hexMap.size() && 
+                            hexMap[index].getCellType() == gl::CellType::LAND) {
+
+                        // Размещаем Soldier на ЗЕМЛЕ, а не на воде!
+                        auto soldier = std::make_unique<gl::Soldier>(owner, &hexMap[index]);
+                        gl::Soldier* soldierPtr = soldier.get();
+
+                        if (hexMap[index].setTroopOf<gl::Soldier>(soldierPtr)) {
+                            enemy.addTroop(std::move(soldier));
+                            break;
+                        }
+                    }
+                }
+            }
             if (selectedHex->setBuildingOf<gl::Port>(portPtr)) {
                 enemy.addBuilding(std::move(port));
                 npcSectors[i].erase(npcSectors[i].begin());

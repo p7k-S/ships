@@ -1,95 +1,44 @@
 #include "MyTurnState.h"
-#include "Game.h"
-#include "TroopSelectedState.h"
-#include "WaitForTurnState.h"
+#include "../Game.h"
 
-void MyTurnState::onEnter(Game& game) {
-    game.isProcessingTurn = true;
-    game.changeTurnLocal = false;
-    game.resetSelection();
+void MyTurnState::enter() {
+    // Активация UI для хода игрока
+    // Разблокировка интерфейса, подсветка доступных действий
 }
 
-void MyTurnState::handleEvents(Game& game) {
-    sf::Event event;
-    while (game.window.pollEvent(event)) {
-        if (event.type == sf::Event::Closed) {
-            game.window.close();
-        }
-        else if (event.type == sf::Event::KeyPressed) {
-            game.handleKeyPressed(event);
-            
-            if (event.key.code == sf::Keyboard::Escape) {
-                game.changeState(std::make_unique<PauseState>());
-            }
-        }
-        else if (event.type == sf::Event::MouseButtonPressed) {
-            if (event.mouseButton.button == sf::Mouse::Left) {
-                sf::Vector2f worldPos = game.window.mapPixelToCoords(
-                    sf::Mouse::getPosition(game.window)
-                );
-                
-                // Если уже выбран юнит - обрабатываем как выбор цели
-                if (game.selectedTroop) {
-                    game.handleTargetSelection(worldPos);
-                    // Если действие выполнено, переходим в состояние с выбранным юнитом
-                    if (game.targetHex) {
-                        game.changeState(std::make_unique<TroopSelectedState>());
-                    }
-                } else {
-                    // Иначе выбираем юнита
-                    game.handleTroopSelection(worldPos);
-                    if (game.selectedTroop) {
-                        game.changeState(std::make_unique<TroopSelectedState>());
-                    }
-                }
-            }
-        }
-        else if (event.type == sf::Event::MouseMoved) {
-            game.handleMouseMove(event);
-        }
-        else if (event.type == sf::Event::MouseWheelScrolled) {
-            game.handleMouseWheel(event);
-        }
-    }
+void MyTurnState::exit() {
+    // Деактивация UI хода игрока
+    // Сброс выделений, блокировка интерфейса
 }
 
-void MyTurnState::update(Game& game) {
-    processTurnLogic(game);
-    
-    // Проверка условий окончания хода
-    if (game.changeTurnLocal) {
-        if (game.isNetworkGame) {
-            game.changeState(std::make_unique<WaitForTurnState>());
-        } else {
-            // В локальной игре сразу переходим к следующему игроку
-            game.nextTurn();
+void MyTurnState::update(float dt) {
+    // Обновление логики хода игрока
+    // Анимации, таймеры, проверка условий завершения хода
+}
+
+void MyTurnState::render(sf::RenderWindow& window) {
+    // Отрисовка игрового поля во время хода игрока
+    // Отрисовка юнитов, UI, выделений и т.д.
+}
+
+void MyTurnState::handleInput(const sf::Event& event) {
+    if (event.type == sf::Event::KeyPressed) {
+        if (event.key.code == sf::Keyboard::Escape) {
+            // Переход в паузу
+            Game::getInstance().getStateManager().changeState("Pause");
+        }
+        else if (event.key.code == sf::Keyboard::Space) {
+            // Завершить ход - переход к ожиданию
+            Game::getInstance().getStateManager().changeState("WaitForTurn");
         }
     }
     
-    // Проверка условий окончания игры
-    if (game.checkGameOver()) {
-        game.changeState(std::make_unique<GameOverState>());
+    // Обработка выбора и перемещения юнитов
+    if (event.type == sf::Event::MouseButtonPressed) {
+        // Логика выбора юнитов, клеток и т.д.
     }
 }
 
-void MyTurnState::processTurnLogic(Game& game) {
-    if (game.isProcessingTurn) {
-        game.isProcessingTurn = false;
-        game.p_id = game.nextAlivePlayer();
-        
-        if (game.isNetworkGame) {
-            game.sendTurnUpdate();
-        }
-    }
-    
-    game.updateVisibleCells();
-    game.cleanupDestroyedShips();
-}
-
-void MyTurnState::render(Game& game) {
-    game.render();
-}
-
-void MyTurnState::onExit(Game& game) {
-    game.resetSelection();
+std::string MyTurnState::getStateName() const {
+    return "MyTurn";
 }
