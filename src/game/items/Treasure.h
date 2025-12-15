@@ -1,3 +1,4 @@
+#pragma once
 #include "BaseItem.h"
 #include <iostream>
 

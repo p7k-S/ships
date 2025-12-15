@@ -1,6 +1,7 @@
 #pragma once
 #include "../GameLogic.h"
 #include "../map/Cell.h"
+#include "../items/Treasure.h"
 
 #include "../entity/Enemy.h"
 #include "../entity/Player.h"
@@ -15,10 +16,10 @@ namespace GameLogic {
 
     class Ship : public Troop {
         private:
-            uint8_t view = 5;         // range(радиус) = 5
-            uint8_t move = 4;         // range(радиус) = 3
-            uint16_t damage = 500;      // 35
-            uint16_t damageRange = 3; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
+            uint8_t view = 20;         // range(радиус) = 5
+            uint8_t move = 10;         // range(радиус) = 3
+            uint16_t damage = 55;      // 35
+            uint16_t damageRange = 10; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
             uint16_t health = 100;      // 100
             uint16_t maxHealth = 100;
             uint16_t gold = 0;
@@ -49,7 +50,7 @@ namespace GameLogic {
             
             // Дамаг
             uint16_t getDamageRange() const override { return damageRange; }
-            void setDamageRange(uint16_t range) { damageRange = range; }
+            void setDamageRange(uint16_t range) override { damageRange = range; }
             virtual void takeDamage(uint16_t dmg) override { dmg > health ? health = 0 : health -= dmg; }
             virtual void giveDamageToTroop(Hex* targetCell) override {
                 Troop* enemy = targetCell->getTroop();
@@ -73,10 +74,11 @@ namespace GameLogic {
                 Building* building = targetCell->getBuilding();
                 building->takeDamage(damage);
                 if (building->isDestroyed()) {
-                    targetCell->removeBuilding();
-
                     std::cout << "building->isDestroyed()\n";
-                    // lostResources(building);
+                    if (building->isPort()) {
+                        building->lostResources(this);
+                    }
+                    targetCell->removeBuilding();
 
                     std::visit(
                         [building](auto* ownerPtr) {
@@ -96,9 +98,16 @@ namespace GameLogic {
                 Ship* enemy_ship = static_cast<Ship*>(enemy);
 
                 if (enemy_ship->isDestroyed()) {
+                    Hex* targetCell = enemy_ship->getCell();
                     uint16_t enemyGold = enemy_ship->getGold();
                     uint16_t availableSpace = getMaxGold() - getGold();
                     uint16_t transferableGold = std::min(enemyGold, availableSpace);
+
+                    if (!hasItem()) {
+                        addItem(enemy_ship->loseItem());
+                    } else {
+                        targetCell->addItem(enemy_ship->loseItem());
+                    }
 
                     // Забираем сколько влезает
                     enemy_ship->loseGold(transferableGold);
@@ -106,7 +115,6 @@ namespace GameLogic {
 
                     // Остальное высыпаем на клетку
                     uint16_t remainingGold = enemy_ship->getGold();
-                    Hex* targetCell = enemy_ship->getCell();
                     if (remainingGold > 0) {
                         addGoldToCell(targetCell, remainingGold);
                         enemy_ship->loseGold(remainingGold);
@@ -124,7 +132,7 @@ namespace GameLogic {
             }
 
             // Хилка
-            void heal(uint16_t hp) { hp > maxHealth - health ? health = maxHealth : health += hp; }
+            void addHP(uint16_t hp) override { hp > maxHealth - health ? health = maxHealth : health += hp; }
 
             // Голда
             void addGoldToCell(Hex* cell, uint16_t amount) {
@@ -140,24 +148,31 @@ namespace GameLogic {
             }
 
             void takeGold(uint16_t amount) { amount > maxGold - gold ? gold = maxGold : gold += amount; }
-            void loseGold(uint16_t amount) { //amount <= gold ? gold -= amount : gold = 2; }
+            void loseGold(uint16_t amount) override { //amount <= gold ? gold -= amount : gold = 2; }
                 if(amount <= gold) {
                     gold -= amount;
                 }
             } // сколько надо отдать
 
             // Методы для предметов
+            bool hasItem() const override { return item.get(); }
             Item* getItem() const { return item.get(); }
+            virtual void addItem(std::unique_ptr<Item> newItem) override {
+                if (newItem && !hasItem()) {
+                    item = (std::move(newItem));
+                }
+            }
 
-            void takeItemByIndexFromCell(size_t index) {
+            void takeItemByIndexFromCell(size_t index) override {
                 if (item) {
-                    std::cout << "First remove item from ship\n";
+                    std::cout << "Firstly remove item from ship\n";
                     return;
                 }
                 item = getCell()->giveItemByIndex(index);
             }
 
-            std::unique_ptr<Item> loseItem() {
+            std::unique_ptr<Item> loseItem() override {
+                if (!item) return nullptr;
                 return std::move(item);
             }
 
@@ -169,16 +184,18 @@ namespace GameLogic {
                 }
             }
 
-            uint16_t getDamage() const { return damage; }
-            uint16_t getHealth() const { return health; }
-            uint16_t getMaxHealth() const { return maxHealth; }
-            uint16_t getGold() const { return gold; }
-            uint16_t getMaxGold() const { return maxGold; }
+            uint16_t getDamage() const override { return damage; }
+            uint16_t getHealth() const override { return health; }
+            void setDamage(uint16_t dmg) override { damage = dmg; }
+            void setHealth(uint16_t hp) override { health = hp; }
+            uint16_t getMaxHealth() const override { return maxHealth; }
+            uint16_t getGold() const override { return gold; }
+            virtual uint16_t getMaxGold() const override { return maxGold; }
             virtual uint8_t getView() const override { return view; }
-            void setView(uint8_t range) { view = range; }
+            void setView(uint8_t range) override { view = range; }
 
             virtual uint8_t getMoveRange() const override { return move; }
-            void setMoveRange(uint8_t range) { move = range; }
+            void setMoveRange(uint8_t range) override { move = range; }
 
 
             // move

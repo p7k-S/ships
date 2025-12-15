@@ -43,7 +43,7 @@ void Game::handleTargetSelection(const sf::Vector2f& worldPos) {
 
 void Game::executeTroopAction() {
     gl::Hex* selectedHex = selectedTroop->getCell();
-    if (!selectedHex || selectedHex == targetHex) {
+    if (!selectedHex || selectedHex == targetHex || !getMoveAmount()) {
         resetSelection();
         return;
     }
@@ -79,6 +79,7 @@ void Game::executeTroopAction() {
             << (targetHex->getTroop() == selectedTroop) << std::endl;
 
         selectedTroop->takeGoldFromCell(targetHex);
+        selectedTroop->takeItemByIndexFromCell(0);
         addViewedCells(players[p_id]->getSeenCells(), selectedTroop, hexMap, gl::RangeMode::VIEW);
         // updateVisibleCells();
 
@@ -99,13 +100,28 @@ void Game::executeTroopAction() {
 
     --movesLeft;
     setMoveAmount(movesLeft);
-    if (!getMoveAmount()) {
-        sf::Event event;
-        event.type = sf::Event::KeyPressed;
-        event.key.code = sf::Keyboard::G; // Любая клавиша
-
-        handleKeyPressed(event); // Вызов твоего существующего метода
-    }
+    std::cout << "Moves left "<< (int)movesLeft << "\n";
 
     resetSelection();
+}
+
+
+void Game::healTroops() {
+    for (const auto& troop : players[p_id]->getTroops()) {
+        auto cell = troop->getCell();
+        if (cell->hasBuilding()) {
+            troop->addHP(cell->getBuilding()->getHeal());
+
+            if (cell->getBuilding()->isPort() && troop->hasItem()) {
+                gl::Port* port = static_cast<gl::Port*>(cell->getBuilding());
+                port->addItem(troop->loseItem());
+                std::cout << "PORT ITEMS CNT: " << port->getItemsSize() << std::endl;
+                
+                if (port->getItemsSize() == treasuresAmount) {
+                    std::cout << "The winner is " << players[p_id]->getName() << " who gets all treasures!!!" << std::endl;
+                    exit(0);
+                }
+            }
+        }
+    }
 }

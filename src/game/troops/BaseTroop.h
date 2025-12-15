@@ -26,6 +26,19 @@ namespace GameLogic {
                 *std::get_if<Player*>(&owner) == currentPlayer;
         }
 
+        virtual void setDamageRange(uint16_t range) = 0;
+        virtual void setView(uint8_t range) = 0;
+        virtual void setMoveRange(uint8_t range) = 0;
+        virtual void setDamage(uint16_t dmg) = 0;
+        virtual void setHealth(uint16_t hp) = 0;
+
+        virtual uint16_t getDamage() const = 0;
+        virtual uint16_t getHealth() const = 0;
+        virtual uint16_t getMaxHealth() const = 0;
+        virtual uint16_t getGold() const = 0;
+        virtual uint16_t getMaxGold() const = 0;
+
+        virtual void loseGold(uint16_t amount) = 0;
 
         virtual uint8_t getView() const;
         virtual uint8_t getMoveRange() const;
@@ -38,9 +51,17 @@ namespace GameLogic {
         virtual bool isDestroyed() const  = 0;
         virtual void takeDamage(uint16_t dmg) = 0;
 
+        virtual void addHP(uint16_t hp) = 0;
+
+        virtual void addItem(std::unique_ptr<Item> newItem) = 0;
+
         //Gold
         virtual void takeGoldFromCell(Hex* cell) = 0;
+        //Items
+        virtual void takeItemByIndexFromCell(size_t index) = 0;
+        virtual bool hasItem() const = 0;
 
+        virtual std::unique_ptr<Item> loseItem() = 0;
 
         // move
         bool canMoveTo(Hex* targetHex) const; // нгужно ???

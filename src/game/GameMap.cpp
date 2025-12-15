@@ -166,8 +166,8 @@ void Game::createTroops() {
 
                         if (hexMap[index].setTroopOf<gl::Soldier>(soldierPtr)) {
                             players[i]->addTroop(std::move(soldier));
-                            std::cout << "DEBUG: Soldier created for player " << i 
-                                << " at LAND cell (" << q << "," << r << ")" << std::endl;
+                            // addViewedCells(players[i]->getSeenCells(), soldier, hexMap, gl::RangeMode::VIEW);
+                            // addViewedCells(players[i]->getViewableCells(), soldier, hexMap, gl::RangeMode::VIEW);
                             break;
                         }
                     }
@@ -175,6 +175,9 @@ void Game::createTroops() {
             }
 
             if (selectedHex->setBuildingOf<gl::Port>(portPtr)) {
+                // addViewedCells(players[i]->getSeenCells(), port, hexMap, gl::RangeMode::VIEW);
+                // addViewedCells(players[i]->getViewableCells(), port, hexMap, gl::RangeMode::VIEW);
+
                 players[i]->addBuilding(std::move(port));
 
                 auto ship = std::make_unique<gl::Ship>(owner, selectedHex);

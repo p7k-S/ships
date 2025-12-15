@@ -53,6 +53,7 @@ void Game::nextTurn() {
     targetHex = nullptr;
     isProcessingTurn = true;
     // currentPath.clear();
+    healTroops();
 }
 
 // void Game::cleanup() {

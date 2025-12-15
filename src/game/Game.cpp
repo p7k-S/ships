@@ -353,6 +353,7 @@ uint8_t Game::nextAlivePlayer() {
         std::cout << "Game turns " << totalTurnCount << std::endl;
         std::exit(0);
     } else {
+        setMoveAmount(players[0]->getTroops().size());
         return 0;
     }
 }

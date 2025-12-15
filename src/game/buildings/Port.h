@@ -1,6 +1,8 @@
 #pragma once
 #include "BaseBuild.h"
 #include "../items/BaseItem.h"
+// #include "../map/Cell.h"
+#include "../troops/BaseTroop.h"
 #include <memory>
 
 
@@ -15,7 +17,7 @@ namespace GameLogic {
             // uint16_t damage;      // 35
             // uint16_t damageRange; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем veiw
             uint16_t heal = 40;      // 100
-            uint16_t health = 500;      // 100
+            uint16_t health = 100;      // 100
             uint16_t maxHealth = 500;
             uint16_t gold = 500;
             uint16_t maxGold = 2000;     // 1000
@@ -30,6 +32,7 @@ namespace GameLogic {
         // Геттеры
         uint8_t getView() const override { return view; }
         uint16_t getHealth() const override { return health; }
+        uint16_t getHeal() const override { return heal; }
         uint16_t getMaxHealth() const override { return maxHealth; }
         uint16_t getGold() const { return gold; }
         uint16_t getMaxGold() const { return maxGold; }
@@ -85,8 +88,22 @@ namespace GameLogic {
         virtual void takeDamage(uint16_t damage) override { if (damage >= health) { health = 0; } else { health -= damage; } }
         virtual bool isDestroyed() const override { return health == 0; }
 
-        virtual void lostResources(Building* enemy) override {
+        virtual void lostResources(Troop* enemy) override {
+                Hex* cell = getCell();
+            if (!enemy->hasItem() && !items.empty()) {
+                enemy->addItem(std::move(items[0]));
+                items.erase(items.begin());
+            }
+
+            while (!items.empty()) {
+                if (cell) {
+                    cell->addItem(std::move(items[0]));
+                }
+                items.erase(items.begin());
+            }
         }
+
+
         // virtual void lostResources(Port* enemy) override {
         //     Port* enemy_port = static_cast<Port*>(enemy);
         //
@@ -118,7 +135,6 @@ namespace GameLogic {
             }
         }
 
-        // как тут хз
         void healingTroops(uint16_t healAmount) { 
         }
 
@@ -145,5 +161,15 @@ namespace GameLogic {
         void resetSpawnRate(uint8_t baseRate = 12) { 
             spawnRate = baseRate;
         }
+
+        bool isPort() const override { return true; }
+
+        void addItem(std::unique_ptr<Item> newItem) {
+            items.push_back(std::move(newItem));
+        }
+        uint16_t getItemsSize() const {
+            return items.size();
+        }
+
     };
 } //namespace GameLogic

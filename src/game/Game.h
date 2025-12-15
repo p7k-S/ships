@@ -103,6 +103,7 @@ private:
     // Обновление состояния игры
     uint8_t nextAlivePlayer();
     void nextTurn();
+    void healTroops();
     void cleanupDestroyedShips();
     void updateVisibleCells();
     void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Troop* troop, std::vector<gl::Hex>& hexMap, gl::RangeMode mode);
@@ -153,12 +154,36 @@ private:
 
 
     void renderSidebar();
+    void renderTroopUpgrades(gl::Troop* troop, int windowWidth, int& yPos);
     void renderBottomBar();
     void renderUI(); // основной метод для всего UI
 
     // Методы для обработки UI кликов
     bool isUIAreaClicked(const sf::Vector2f& mousePos);
     void handleUIClick(const sf::Vector2f& mousePos);
+
+    // Структура для кнопки улучшения
+    enum class UpgradeType {
+        HEAL,
+        HEALTH,
+        DAMAGE, 
+        VIEW_RANGE,
+        ATTACK_RANGE,
+        MOVE_RANGE,
+        CONVERT
+    };
+    struct TroopUpgradeButton {
+        sf::FloatRect bounds;        // Область кнопки для кликов
+        int cost;                    // Стоимость улучшения
+        GameLogic::Troop* troop;     // Указатель на войско
+        UpgradeType upgradeType;  // Используем enum вместо string
+    };
+
+    std::vector<TroopUpgradeButton> troopUpgradeButtons;
+
+    void handleTroopUpgrade(const TroopUpgradeButton& upgradeButton);
+
+
 
     sf::RenderWindow window;
     sf::View view;
