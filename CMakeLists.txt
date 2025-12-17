@@ -80,6 +80,7 @@ set(SOURCE_FILES
     src/game/map/MapFuncs.cpp
     src/game/troops/BaseTroop.cpp
     src/game/buildings/BaseBuild.cpp
+    src/game/buildings/Port.cpp
     src/game/entity/EntityFuncs.cpp
     src/game/GameConfig.cpp
     src/game/Game.cpp

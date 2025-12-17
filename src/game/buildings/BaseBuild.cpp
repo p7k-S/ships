@@ -1,8 +1,8 @@
 #include "BaseBuild.h"
 
 namespace GameLogic {
-    void Building::lostResources(Building* enemy) {
-    }
+    // void Building::lostResources(Building* enemy) {
+    // }
     uint8_t Building::getView() const {
         return 0; // Базовая видимость для зданий
     }

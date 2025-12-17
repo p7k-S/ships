@@ -1,14 +1,9 @@
 #pragma once
 #include "BaseBuild.h"
 #include "../items/BaseItem.h"
-// #include "../map/Cell.h"
 #include "../troops/BaseTroop.h"
+#include "../map/Cell.h"
 #include <memory>
-
-
-// 15 клеток по горизонтали с разницей в ширину карты(15 = witdth) и ставим 2 порта
-// 15 клеток вниз
-// и тд
 
 namespace GameLogic {
     class Port : public Building {
@@ -88,20 +83,22 @@ namespace GameLogic {
         virtual void takeDamage(uint16_t damage) override { if (damage >= health) { health = 0; } else { health -= damage; } }
         virtual bool isDestroyed() const override { return health == 0; }
 
-        virtual void lostResources(Troop* enemy) override {
-                Hex* cell = getCell();
-            if (!enemy->hasItem() && !items.empty()) {
-                enemy->addItem(std::move(items[0]));
-                items.erase(items.begin());
-            }
-
-            while (!items.empty()) {
-                if (cell) {
-                    cell->addItem(std::move(items[0]));
-                }
-                items.erase(items.begin());
-            }
-        }
+        virtual void lostResources(Troop* enemy) override;
+        // virtual void lostResources(Troop* enemy) override {
+        //     Hex* cell = getCell();
+        //
+        //     if (!enemy->hasItem() && !items.empty()) {
+        //         enemy->addItem(std::move(items.front()));
+        //         items.erase(items.begin());
+        //     }
+        //
+        //     while (!items.empty()) {
+        //         if (cell) {
+        //             cell->addItem(std::move(items.front()));
+        //         }
+        //         items.erase(items.begin());
+        //     }
+        // }
 
 
         // virtual void lostResources(Port* enemy) override {

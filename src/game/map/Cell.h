@@ -9,9 +9,9 @@
 #include "../items/Gold.h"
 
 #include "../troops/BaseTroop.h"
-// #include "../buildings/BaseBuild.h"
-#include "../buildings/Port.h"
+#include "../buildings/BaseBuild.h"
 #include "../GameConfig.h"
+#include "../buildings/Port.h"
 
 namespace GameLogic {
     class Hex {

@@ -1,5 +1,6 @@
 #pragma once
 #include "../GameLogic.h"
+// #include "../map/Cell.h"
 
 namespace GameLogic {
     class Building {
