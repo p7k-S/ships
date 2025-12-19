@@ -62,12 +62,15 @@ private:
     void handleAttackAction(int playerId, int attackerQ, int attackerR, int targetQ, int targetR);
 
     uint16_t totalTurnCount = 0;
+    bool endGame = false;
 
     // Основные методы игрового цикла
     void processEvents();
     void update();
     void render();
     void renderWaitMove();
+    void drawCornerDecorations(sf::RenderWindow& window);
+
     
     // Инициализация
     bool initialize();
@@ -142,6 +145,8 @@ private:
     void renderBottomStatsBar();
     void renderCellInfoPanel();
 
+
+
     // Функции для работы с периметром
     // std::vector<gl::Hex*> getBorderHexesWithNeighbors(const std::vector<gl::Hex*>& area, const std::vector<gl::Hex>& allHexes);
     // void renderAttackRangeBorderOnly(const std::vector<gl::Hex*>& attackRangeHexes, const std::vector<gl::Hex>& allHexes);
@@ -153,7 +158,16 @@ private:
     std::vector<gl::Hex> hexMap;
 
 
+    void renderVictoryScreen(uint8_t winnerId);
+    void showVictoryScreen(uint8_t winnerId);
+    void drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId);
+    // void waitForVictoryInput(uint8_t winnerId);
+
+
     void renderSidebar();
+    void renderBuildingInfo(gl::Hex* hex, int windowWidth, int& yPos);
+    void renderTroopInfo(gl::Troop* troop, int windowWidth, int& yPos);
+    void renderBuyUnitsButtons(gl::Troop* troop, int windowWidth, int& yPos);
     void renderTroopUpgrades(gl::Troop* troop, int windowWidth, int& yPos);
     void renderBottomBar();
     void renderUI(); // основной метод для всего UI
@@ -164,14 +178,17 @@ private:
 
     // Структура для кнопки улучшения
     enum class UpgradeType {
-        HEAL,
         HEALTH,
-        DAMAGE, 
+        HEAL,
+        DAMAGE,
         VIEW_RANGE,
         ATTACK_RANGE,
         MOVE_RANGE,
+        BUY_SHIP,
+        BUY_SOLDIER,
         CONVERT
     };
+
     struct TroopUpgradeButton {
         sf::FloatRect bounds;        // Область кнопки для кликов
         int cost;                    // Стоимость улучшения

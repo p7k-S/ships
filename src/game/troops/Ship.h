@@ -147,7 +147,7 @@ namespace GameLogic {
                 }
             }
 
-            void takeGold(uint16_t amount) { amount > maxGold - gold ? gold = maxGold : gold += amount; }
+            void takeGold(uint16_t amount) override { amount > maxGold - gold ? gold = maxGold : gold += amount; }
             void loseGold(uint16_t amount) override { //amount <= gold ? gold -= amount : gold = 2; }
                 if(amount <= gold) {
                     gold -= amount;

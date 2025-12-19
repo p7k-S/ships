@@ -131,18 +131,25 @@ void Game::handleKeyPressed(const sf::Event& event) {
     //     }
     // }
 
+    if (event.key.code == sf::Keyboard::Escape) {
+        selectedTroop = nullptr;
+    }
     if (event.key.code == sf::Keyboard::F) {
         fullscreenMapMode = !fullscreenMapMode;
     }
     if (event.key.code == sf::Keyboard::G) {
-        std::cout << "Turn ended by player! " << (int)p_id + 1 << std::endl;  // Добавь для отладки
         if (!isNetworkGame && !changeTurnLocal && playersAmount > 1) {
             changeTurnLocal = true;
+            nextTurn();
+        } if (playersAmount == 1) {
+            nextTurn();
         }
-        nextTurn();
     }
     if (event.key.code == sf::Keyboard::Space) {
         changeTurnLocal = false;
+        if (endGame) {
+            exit(0);
+        }
     }
 
     handleCameraControl(event);

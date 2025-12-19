@@ -57,6 +57,7 @@ namespace GameLogic {
 
         //Gold
         virtual void takeGoldFromCell(Hex* cell) = 0;
+        virtual void takeGold(uint16_t amount) = 0;
         //Items
         virtual void takeItemByIndexFromCell(size_t index) = 0;
         virtual bool hasItem() const = 0;

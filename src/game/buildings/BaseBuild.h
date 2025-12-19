@@ -33,6 +33,7 @@ namespace GameLogic {
             virtual uint16_t getHealth() const = 0;
             virtual uint16_t getHeal() const = 0;
             virtual uint16_t getMaxHealth() const = 0;
+            virtual uint16_t getGold() const = 0;
 
             virtual bool isDestroyed() const  = 0;
             virtual void takeDamage(uint16_t dmg) = 0;

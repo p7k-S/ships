@@ -48,11 +48,12 @@ void Game::renderSidebar() {
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
     sf::Vector2f worldPos = window.mapPixelToCoords(mousePos, view);
     gl::Hex* hoveredHex = selectedHex;
+    auto vc = players[p_id]->getViewableCells();
     if (selectedTroop) {
         hoveredHex = selectedTroop->getCell();
     }
 
-    if (hoveredHex) {
+    if (hoveredHex && std::find(vc.begin(), vc.end(), hoveredHex) != vc.end()) {
         // Координаты
         sf::Text coordText("Coord: (" + std::to_string(hoveredHex->q) + "," + std::to_string(hoveredHex->r) + ")", EmbeddedResources::main_font, 14);
         coordText.setPosition(windowWidth - 240, yPos);
@@ -305,6 +306,7 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
 
         case UpgradeType::CONVERT: {
             uint16_t gold = troop->getGold();
+            auto item = troop->loseItem();
             auto cell = troop->getCell();
             gl::Owner owner = players[p_id].get();
             
@@ -315,6 +317,7 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
             if (wasShip) {
                 auto soldier = std::make_unique<gl::Soldier>(owner, &hexMap[cell->q + cell->r * mapWidth]);
                 soldier->takeGold(gold);
+                soldier->addItem(std::move(item));
                 
                 cell->removeTroop();
                 cell->setTroopOf<gl::Soldier>(soldier.get());
@@ -325,6 +328,7 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
             } else {
                 auto ship = std::make_unique<gl::Ship>(owner, &hexMap[cell->q + cell->r * mapWidth]);
                 ship->takeGold(gold);
+                ship->addItem(std::move(item));
                 
                 cell->removeTroop();
                 cell->setTroopOf<gl::Ship>(ship.get());
@@ -392,17 +396,14 @@ void Game::renderBottomBar() {
     window.draw(controls);
 }
 
-// Проверка кликов по UI
 bool Game::isUIAreaClicked(const sf::Vector2f& mousePos) {
     int windowWidth = window.getSize().x;
     int windowHeight = window.getSize().y;
     
-    // Правая панель (последние 250 пикселей)
     if (mousePos.x > windowWidth - 250) {
         return true;
     }
     
-    // Нижняя панель (последние 80 пикселей)
     if (mousePos.y > windowHeight - 80) {
         return true;
     }
@@ -413,7 +414,6 @@ bool Game::isUIAreaClicked(const sf::Vector2f& mousePos) {
 void Game::render() {
     window.clear(sf::Color(20, 20, 20));
 
-    // 1️⃣ Рендерим игровой мир с камерой
     window.setView(view);
     
     updateVisibleCells();
@@ -421,7 +421,6 @@ void Game::render() {
     renderShipRange();
     renderBars();
 
-    // 2️⃣ Рендерим UI с дефолтным видом
     window.setView(window.getDefaultView());
     renderUI();
 
@@ -430,18 +429,85 @@ void Game::render() {
 
 void Game::renderWaitMove() {
     window.setView(window.getDefaultView());
-    window.clear(sf::Color(20, 20, 20));
-
+    window.clear(sf::Color(15, 15, 25));
+    
+    sf::Vector2u windowSize = window.getSize();
+    
+    sf::RectangleShape background(sf::Vector2f(windowSize.x, windowSize.y));
+    background.setFillColor(sf::Color(25, 25, 40, 230));
+    window.draw(background);
+    
+    sf::RectangleShape textArea(sf::Vector2f(windowSize.x * 0.7f, 200));
+    textArea.setPosition(windowSize.x * 0.15f, windowSize.y * 0.4f);
+    textArea.setFillColor(sf::Color(40, 40, 60, 200));
+    textArea.setOutlineThickness(3);
+    textArea.setOutlineColor(sf::Color(70, 70, 100));
+    window.draw(textArea);
+    
     sf::Text text;
     text.setFont(EmbeddedResources::main_font);
-    text.setString("Next turn: " + players[p_id]->getName() + "\nPress SPACE to continue");
-    text.setCharacterSize(24);
-    text.setFillColor(COLORS["red"]);
+    
+    std::string displayText = "Next turn: " + players[p_id]->getName() + "\n\n";
+    displayText += "Press SPACE to continue";
+    text.setString(displayText);
+    
+    text.setFillColor(sf::Color(255, 215, 0));
+    text.setStyle(sf::Text::Bold);
+    
     sf::FloatRect textBounds = text.getLocalBounds();
-    text.setPosition(100, 100); // простая позиция вместо центрирования
+    text.setOrigin(textBounds.left + textBounds.width / 2.0f,
+                   textBounds.top + textBounds.height / 2.0f);
+    text.setPosition(textArea.getPosition().x + textArea.getSize().x / 2.0f,
+                     textArea.getPosition().y + textArea.getSize().y / 2.0f);
 
-    window.draw(text);
+    sf::Text shadow = text;
+    shadow.setFillColor(sf::Color(0, 0, 0, 150));
+    shadow.setPosition(text.getPosition().x + 3, text.getPosition().y + 3); // Смещаем относительно основного текста
+    
+    window.draw(shadow);    // Тень
+    window.draw(text);      // Основной текст
+    
+    // Анимированная подсказка
+    static sf::Clock blinkClock;
+    float blinkTime = blinkClock.getElapsedTime().asSeconds();
+    if (static_cast<int>(blinkTime * 2) % 2 == 0) {
+        sf::Text hintText;
+        hintText.setFont(EmbeddedResources::main_font);
+        hintText.setString("^^^^^");
+        hintText.setCharacterSize(24);
+        hintText.setFillColor(sf::Color(150, 150, 255, 200));
+        
+        sf::FloatRect hintBounds = hintText.getLocalBounds();
+        hintText.setOrigin(hintBounds.left + hintBounds.width / 2.0f, 0);
+        hintText.setPosition(windowSize.x / 2.0f, 
+                           textArea.getPosition().y + textArea.getSize().y + 20);
+        
+        window.draw(hintText);
+    }
+    
+    drawCornerDecorations(window);
+    
     window.display();
+}
+
+void Game::drawCornerDecorations(sf::RenderWindow& window) {
+    sf::Vector2u size = window.getSize();
+    sf::RectangleShape corner(sf::Vector2f(30, 30));
+    corner.setFillColor(sf::Color::Transparent);
+    corner.setOutlineThickness(2);
+    corner.setOutlineColor(sf::Color(100, 100, 150, 100));
+    
+    corner.setPosition(20, 20);
+    window.draw(corner);
+    
+    corner.setPosition(size.x - 50, 20);
+    window.draw(corner);
+    
+    corner.setPosition(20, size.y - 50);
+    window.draw(corner);
+
+    corner.setPosition(size.x - 50, size.y - 50);
+    window.draw(corner);
 }
 
 void Game::renderBottomStatsBar() {

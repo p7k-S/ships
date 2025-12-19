@@ -222,9 +222,9 @@ void Game::createLocalPlayer() {
 
 void Game::run() {
     // Спросить тип игры
-    std::cout << "Local game (1) or Network game (2)? ";
-    int choice;
-    std::cin >> choice;
+    // std::cout << "Local game (1) or Network game (2)? ";
+    int choice = 1;
+    // std::cin >> choice;
     isNetworkGame = (choice == 2);
     
     if (isNetworkGame) {
@@ -311,33 +311,30 @@ void Game::run() {
         // }
 
 
-        if (isProcessingTurn) {
-            totalTurnCount++;
-            isProcessingTurn = false;
-            p_id = nextAlivePlayer();
+        if (endGame) {
+            showVictoryScreen(p_id);
+        } else { 
+            if (isProcessingTurn) {
+                totalTurnCount++;
+                isProcessingTurn = false;
+                p_id = nextAlivePlayer();
 
-            // if (isNetworkGame) {
-            //     sendTurnChange(p_id);
-            // }
-        }
+                // if (isNetworkGame) {
+                //     sendTurnChange(p_id);
+                // }
+            }
 
-        if (changeTurnLocal) {
-            renderWaitMove();
-        }
-        else {
-            render();
+            if (changeTurnLocal) {
+                renderWaitMove();
+            }
+            else {
+                render();
+            }
         }
     }
 }
 
 uint8_t Game::nextAlivePlayer() {
-    std::cout << "=== DEBUG: Checking alive players ===" << std::endl;
-    for (uint8_t i = 0; i < playersAmount; ++i) {
-        std::cout << "Player " << (int)i << " - troops: " << players[i]->getTroops().size() 
-            << ", buildings: " << players[i]->getBuildings().size()
-            << ", isDead: " << players[i]->isDead() << std::endl;
-    }
-
     if (playersAmount > 1) {
         for (uint8_t i = 1; i < playersAmount; ++i) {
             uint8_t nextPlayer = (p_id + i) % playersAmount;
@@ -348,10 +345,9 @@ uint8_t Game::nextAlivePlayer() {
                 return nextPlayer;
             }
         }
-        std::cout << "The winner is " << players[p_id]->getName() << "!!!" << std::endl;
         --totalTurnCount;
-        std::cout << "Game turns " << totalTurnCount << std::endl;
-        std::exit(0);
+        endGame = true;
+        return p_id;
     } else {
         setMoveAmount(players[0]->getTroops().size());
         return 0;
@@ -369,10 +365,6 @@ void Game::sendNetworkMessage(const std::string& message) {
     }
 }
 
-// void Game::processPlayerTurn() {
-//     updateVisibleCells();
-// }
-
 bool Game::isPlayerOwner(const GameLogic::Owner& owner) const {
     return std::holds_alternative<gl::Player*>(owner);
 }
@@ -384,62 +376,3 @@ bool Game::isEnemyOwner(const GameLogic::Owner& owner) const {
 bool Game::isPirateOwner(const GameLogic::Owner& owner) const {
     return std::holds_alternative<gl::Pirate*>(owner);
 }
-
-// void Game::sendMap()
-// {
-//     std::ostringstream out;
-//     out << "MAP_BEGIN\n";
-//
-//     for (const auto& h : hexMap)
-//     {
-//         out << h.q << " "
-//             << h.r << " "
-//             << static_cast<int>(h.getCellType()) << " "
-//             << h.getNoise() << " "
-//             << h.getGold() << "\n";
-//     }
-//
-//     out << "MAP_END";
-//
-//     std::string msg = out.str();
-//     sendNetworkMessage(msg);
-// }
-//
-// void Game::receiveMap(const std::string& msg)
-// {
-//     std::istringstream in(msg);
-//     std::string line;
-//
-//     // Ждём MAP_BEGIN
-//     std::getline(in, line);
-//     if (line != "MAP_BEGIN") return;
-//
-//     hexMap.clear();
-//
-//     while (std::getline(in, line))
-//     {
-//         if (line == "MAP_END") break;
-//
-//         std::istringstream row(line);
-//
-//         int q, r;
-//         int type;
-//         float noise;
-//         uint16_t gold;
-//
-//         row >> q >> r >> type >> noise >> gold;
-//
-//         GameLogic::Hex hex(q, r);
-//         hex.setCellType(static_cast<gl::CellType>(type));
-//
-//         // шум
-//         // если хочешь — сделай метод setNoise()
-//         *(float*)&hex = noise; // временно напрямую
-//
-//         // золото
-//         if (gold > 0)
-//             hex.addGold(gold);
-//
-//         hexMap.push_back(hex);
-//     }
-// }

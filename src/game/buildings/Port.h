@@ -14,7 +14,7 @@ namespace GameLogic {
             uint16_t heal = 40;      // 100
             uint16_t health = 100;      // 100
             uint16_t maxHealth = 500;
-            uint16_t gold = 500;
+            uint16_t gold = 25;
             uint16_t maxGold = 2000;     // 1000
             uint8_t spawnRate = 255;      // кол-во ходов на spawn
             std::vector<std::unique_ptr<Item>> items;
@@ -29,7 +29,7 @@ namespace GameLogic {
         uint16_t getHealth() const override { return health; }
         uint16_t getHeal() const override { return heal; }
         uint16_t getMaxHealth() const override { return maxHealth; }
-        uint16_t getGold() const { return gold; }
+        uint16_t getGold() const override { return gold; }
         uint16_t getMaxGold() const { return maxGold; }
         uint8_t getSpawnRate() const { return spawnRate; }
 

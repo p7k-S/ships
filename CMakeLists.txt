@@ -90,6 +90,7 @@ set(SOURCE_FILES
     src/game/GameLogic.cpp
     src/game/GameMap.cpp 
     src/game/GameUtils.cpp
+    src/game/EndGame.cpp
 
     src/render/ui/UIRenderer.cpp
     src/textures/EmbeddedResources.cpp

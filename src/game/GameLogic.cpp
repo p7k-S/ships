@@ -111,6 +111,7 @@ void Game::healTroops() {
         auto cell = troop->getCell();
         if (cell->hasBuilding()) {
             troop->addHP(cell->getBuilding()->getHeal());
+            troop->takeGold(cell->getBuilding()->getGold());
 
             if (cell->getBuilding()->isPort() && troop->hasItem()) {
                 gl::Port* port = static_cast<gl::Port*>(cell->getBuilding());
@@ -118,8 +119,7 @@ void Game::healTroops() {
                 std::cout << "PORT ITEMS CNT: " << port->getItemsSize() << std::endl;
                 
                 if (port->getItemsSize() == treasuresAmount) {
-                    std::cout << "The winner is " << players[p_id]->getName() << " who gets all treasures!!!" << std::endl;
-                    exit(0);
+                    endGame = true;
                 }
             }
         }
