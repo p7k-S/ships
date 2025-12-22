@@ -146,7 +146,6 @@ void Game::renderSidebar() {
     }
 }
 
-// Рендерим кнопки улучшений для войска
 void Game::renderTroopUpgrades(gl::Troop* troop, int windowWidth, int& yPos) {
     troopUpgradeButtons.clear();
     if (!troop) return;
@@ -199,35 +198,91 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int windowWidth, int& yPos) {
         troopUpgradeButtons.push_back(upgradeButton);
         yPos += 35;
     }
+    
     gl::Hex* troopCell = troop->getCell();
     if (troopCell && troopCell->hasBuilding()) {
         auto* building = troopCell->getBuilding();
         if (building && building->isPort() && yPos < window.getSize().y - 100) {
             yPos += 10;
+            
+            // Кнопка покупки солдата
+            if (yPos < window.getSize().y - 100) {
+                // Фон кнопки солдата
+                sf::RectangleShape soldierButton(sf::Vector2f(200, 30));
+                soldierButton.setPosition(windowWidth - 240, yPos);
+                soldierButton.setFillColor(sf::Color(60, 80, 60));
+                soldierButton.setOutlineColor(sf::Color(100, 120, 100));
+                soldierButton.setOutlineThickness(1);
+                window.draw(soldierButton);
 
-            // Фон кнопки конвертации
-            sf::RectangleShape convertButton(sf::Vector2f(200, 30));
-            convertButton.setPosition(windowWidth - 240, yPos);
-            convertButton.setFillColor(sf::Color(80, 60, 100));
-            convertButton.setOutlineColor(sf::Color(120, 100, 140));
-            convertButton.setOutlineThickness(1);
-            window.draw(convertButton);
+                // Текст кнопки
+                sf::Text soldierText("BUY SOLDIER | 50g", EmbeddedResources::main_font, 12);
+                soldierText.setPosition(windowWidth - 235, yPos + 8);
+                soldierText.setFillColor(sf::Color::White);
+                window.draw(soldierText);
 
-            // Текст кнопки
-            sf::Text convertText("CONVERT UNIT | 50g", EmbeddedResources::main_font, 12);
-            convertText.setPosition(windowWidth - 235, yPos + 8);
-            convertText.setFillColor(sf::Color::White);
-            window.draw(convertText);
+                // Сохраняем кнопку солдата
+                TroopUpgradeButton soldierButtonInfo;
+                soldierButtonInfo.bounds = soldierButton.getGlobalBounds();
+                soldierButtonInfo.cost = 50;
+                soldierButtonInfo.troop = troop;
+                soldierButtonInfo.upgradeType = UpgradeType::BUY_SOLDIER;
 
-            // Сохраняем кнопку конвертации
-            TroopUpgradeButton convertButtonInfo;
-            convertButtonInfo.bounds = convertButton.getGlobalBounds();
-            convertButtonInfo.cost = 50;
-            convertButtonInfo.troop = troop;
-            convertButtonInfo.upgradeType = UpgradeType::CONVERT;
+                troopUpgradeButtons.push_back(soldierButtonInfo);
+                yPos += 35;
+            }
+            
+            // Кнопка покупки корабля
+            if (yPos < window.getSize().y - 100) {
+                // Фон кнопки корабля
+                sf::RectangleShape shipButton(sf::Vector2f(200, 30));
+                shipButton.setPosition(windowWidth - 240, yPos);
+                shipButton.setFillColor(sf::Color(60, 60, 200));
+                shipButton.setOutlineColor(sf::Color(100, 100, 120));
+                shipButton.setOutlineThickness(1);
+                window.draw(shipButton);
 
-            troopUpgradeButtons.push_back(convertButtonInfo);
-            yPos += 35;
+                // Текст кнопки
+                sf::Text shipText("BUY SHIP | 100g", EmbeddedResources::main_font, 12);
+                shipText.setPosition(windowWidth - 235, yPos + 8);
+                shipText.setFillColor(sf::Color::White);
+                window.draw(shipText);
+
+                // Сохраняем кнопку корабля
+                TroopUpgradeButton shipButtonInfo;
+                shipButtonInfo.bounds = shipButton.getGlobalBounds();
+                shipButtonInfo.cost = 100;
+                shipButtonInfo.troop = troop;
+                shipButtonInfo.upgradeType = UpgradeType::BUY_SHIP;
+
+                troopUpgradeButtons.push_back(shipButtonInfo);
+                yPos += 35;
+            }
+            
+            yPos+=10;
+
+            if (yPos < window.getSize().y - 100) {
+                sf::RectangleShape convertButton(sf::Vector2f(200, 30));
+                convertButton.setPosition(windowWidth - 240, yPos);
+                convertButton.setFillColor(sf::Color(80, 60, 100));
+                convertButton.setOutlineColor(sf::Color(120, 100, 140));
+                convertButton.setOutlineThickness(1);
+                window.draw(convertButton);
+
+                sf::Text convertText("CONVERT UNIT | 50g", EmbeddedResources::main_font, 12);
+                convertText.setPosition(windowWidth - 235, yPos + 8);
+                convertText.setFillColor(sf::Color::White);
+                window.draw(convertText);
+
+                TroopUpgradeButton convertButtonInfo;
+                convertButtonInfo.bounds = convertButton.getGlobalBounds();
+                convertButtonInfo.cost = 50;
+                convertButtonInfo.troop = troop;
+                convertButtonInfo.upgradeType = UpgradeType::CONVERT;
+
+                troopUpgradeButtons.push_back(convertButtonInfo);
+                yPos += 35;
+            }
         }
     }
 }
@@ -269,9 +324,6 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
         return;
     }
 
-    // Временно просто вычитаем золото
-    troop->loseGold(upgradeButton.cost);
-    std::cout << "Upgrade applied! Cost: " << upgradeButton.cost << " gold" << std::endl;
 
     switch (upgradeButton.upgradeType) {
         case UpgradeType::HEALTH:
@@ -304,7 +356,28 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
             std::cout << "Added 1 move range to troop" << std::endl;
             break;
 
+        case UpgradeType::BUY_SOLDIER: {
+            bool correct = placeSoldier(*troop->getCell());
+            if (!correct) {
+                troop->takeGold(upgradeButton.cost);
+                std::cout << "cannot place new troop" << std::endl;
+            }
+            break;
+        }
+
+        case UpgradeType::BUY_SHIP: {
+            bool correct = placeShip(*troop->getCell());
+            if (!correct) {
+                troop->takeGold(upgradeButton.cost);
+                std::cout << "cannot place new troop" << std::endl;
+            }
+            break;
+        }
+
         case UpgradeType::CONVERT: {
+            troop->loseGold(upgradeButton.cost);
+            std::cout << "Upgrade applied! Cost: " << upgradeButton.cost << " gold" << std::endl;
+
             uint16_t gold = troop->getGold();
             auto item = troop->loseItem();
             auto cell = troop->getCell();
@@ -346,6 +419,10 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
         default:
             std::cout << "Unknown upgrade type" << std::endl;
             return;
+    }
+    if (!(upgradeButton.upgradeType == UpgradeType::CONVERT)) {
+        troop->loseGold(upgradeButton.cost);
+        std::cout << "Upgrade applied! Cost: " << upgradeButton.cost << " gold" << std::endl;
     }
 }
 
@@ -508,31 +585,6 @@ void Game::drawCornerDecorations(sf::RenderWindow& window) {
 
     corner.setPosition(size.x - 50, size.y - 50);
     window.draw(corner);
-}
-
-void Game::renderBottomStatsBar() {
-    sf::RectangleShape bar;
-    bar.setSize({(float)window.getSize().x, 200.f});
-    bar.setFillColor(sf::Color(50, 50, 70));
-    window.draw(bar);
-
-    sf::Text stats("Ships: 5 | Treasures: 2 | Turn: 3", EmbeddedResources::main_font, 20);
-    stats.setPosition(20, 20);
-    window.draw(stats);
-}
-
-void Game::renderCellInfoPanel() {
-    sf::RectangleShape panel;
-    panel.setSize({(float)window.getSize().x * 0.25f, (float)window.getSize().y * 0.8f});
-    panel.setFillColor(sf::Color(40, 40, 60));
-    window.draw(panel);
-
-    if (targetHex) {
-        sf::Text info("Cell: " + std::to_string(targetHex->q) + "," +
-                std::to_string(targetHex->r), EmbeddedResources::main_font, 18);
-        info.setPosition(20, 20);
-        window.draw(info);
-    }
 }
 
 void Game::renderMap() {

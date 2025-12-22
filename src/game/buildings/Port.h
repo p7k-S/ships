@@ -12,8 +12,8 @@ namespace GameLogic {
             // uint16_t damage;      // 35
             // uint16_t damageRange; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем veiw
             uint16_t heal = 40;      // 100
-            uint16_t health = 100;      // 100
-            uint16_t maxHealth = 500;
+            uint16_t health = 1000;      // 100
+            uint16_t maxHealth = 1000;
             uint16_t gold = 25;
             uint16_t maxGold = 2000;     // 1000
             uint8_t spawnRate = 255;      // кол-во ходов на spawn

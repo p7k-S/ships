@@ -87,6 +87,8 @@ private:
     void createTroops();
     void placingSoldiers(gl::Owner owner);
     bool portCanPlayced(const gl::Hex& h);
+    bool placeShip(const gl::Hex& portCell);
+    bool placeSoldier(const gl::Hex& portCell);
     void createPlayers();
     void placeGoldAndTreasures();
     
@@ -142,8 +144,6 @@ private:
     void renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor);
     void renderPath();
     void renderBars();
-    void renderBottomStatsBar();
-    void renderCellInfoPanel();
 
 
 

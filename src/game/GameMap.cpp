@@ -118,6 +118,89 @@ bool Game::portCanPlayced(const gl::Hex& h) {
     return hasLandNeighbor;
 }
 
+bool Game::placeShip(const gl::Hex& portCell) {
+    gl::Hex* cell = nullptr;
+    const int RAD = 10;
+    bool found = false;
+
+    for (int dist = 1; dist <= RAD && !found; dist++) {
+        for (int r = portCell.r - dist; r <= portCell.r + dist && !found; r++) {
+            for (int q = portCell.q - dist; q <= portCell.q + dist && !found; q++) {
+                if (q == portCell.q && r == portCell.r) continue;
+
+                // Быстрая проверка - если оба смещения меньше dist, это внутренняя клетка
+                if (abs(q - portCell.q) < dist && abs(r - portCell.r) < dist) continue;
+
+                if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
+                    int i = q + r * mapWidth;
+                    if (i >= 0 && i < hexMap.size()) {
+                        if (hexMap[i].getCellType() <= gl::CellType::WATER && 
+                                !hexMap[i].hasTroop() && 
+                                !hexMap[i].hasBuilding()) {
+                            cell = &hexMap[i];
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    if (cell) {
+        auto ship = std::make_unique<gl::Ship>(players[p_id].get(), cell);
+        gl::Ship* shipPtr = ship.get();
+        cell->setTroopOf<gl::Ship>(shipPtr);
+        players[p_id]->addTroop(std::move(ship));
+
+        return true;
+    }
+
+    return true;
+}
+
+bool Game::placeSoldier(const gl::Hex& portCell) {
+    gl::Hex* cell = nullptr;
+    const int RAD = 10;
+    bool found = false;
+
+    for (int dist = 1; dist <= RAD && !found; dist++) {
+        for (int r = portCell.r - dist; r <= portCell.r + dist && !found; r++) {
+            for (int q = portCell.q - dist; q <= portCell.q + dist && !found; q++) {
+                if (q == portCell.q && r == portCell.r) continue;
+
+                // Быстрая проверка - если оба смещения меньше dist, это внутренняя клетка
+                if (abs(q - portCell.q) < dist && abs(r - portCell.r) < dist) continue;
+
+                if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
+                    int i = q + r * mapWidth;
+                    if (i >= 0 && i < hexMap.size()) {
+                        if (hexMap[i].getCellType() >= gl::CellType::LAND && 
+                                !hexMap[i].hasTroop() && 
+                                !hexMap[i].hasBuilding()) {
+                            cell = &hexMap[i];
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    if (cell) {
+        auto soldier = std::make_unique<gl::Soldier>(players[p_id].get(), cell);
+        gl::Soldier* soldPtr = soldier.get();
+        cell->setTroopOf<gl::Soldier>(soldPtr);
+        players[p_id]->addTroop(std::move(soldier));
+
+        return true;
+    }
+
+    return true;
+}
+
 void Game::createTroops() {
     std::vector<gl::Hex*> waterCells;
     for (auto& hex : hexMap) {
