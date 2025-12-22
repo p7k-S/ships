@@ -102,6 +102,8 @@ private:
     void handleMouseMove(const sf::Event& event);
     void handleMouseWheel(const sf::Event& event);
     void handleCameraControl(const sf::Event& event);
+    void handleWindowResize(const sf::Event& event);
+
     
     // Логика выбора и действий
     void handleTroopSelection(const sf::Vector2f& worldPos);
@@ -112,7 +114,7 @@ private:
     // Обновление состояния игры
     uint8_t nextAlivePlayer();
     void nextTurn();
-    void healTroops();
+    void troopsOnPortAction();
     void cleanupDestroyedShips();
     void updateVisibleCells();
     void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Troop* troop, std::vector<gl::Hex>& hexMap, gl::RangeMode mode);
@@ -148,7 +150,7 @@ private:
     void renderShipRange();
     void renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor);
     void renderPath();
-    void renderBars();
+    void renderUnitBars();
 
 
 
@@ -175,7 +177,7 @@ private:
     void renderBuildingInfo(gl::Hex* hex, int windowWidth, int& yPos);
     void renderTroopInfo(gl::Troop* troop, int windowWidth, int& yPos);
     void renderBuyUnitsButtons(gl::Troop* troop, int windowWidth, int& yPos);
-    void renderTroopUpgrades(gl::Troop* troop, int windowWidth, int& yPos);
+    void renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth, int& yPos);
     void renderBottomBar();
     void renderUI(); // основной метод для всего UI
 

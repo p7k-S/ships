@@ -4,40 +4,32 @@
 // #include <iostream>
 
 void Game::handleMouseButtonPressed(const sf::Event& event) {
-    if (event.mouseButton.button == sf::Mouse::Left) {
-        // Сначала проверяем UI клики
-        sf::Vector2f uiMousePos = window.mapPixelToCoords(
-            sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 
-            window.getDefaultView()
-        );
-        
-        if (isUIAreaClicked(uiMousePos)) {
-            handleUIClick(uiMousePos);
-            return;
-        }
-        
-        // Если не UI, начинаем драг и обрабатываем игровой мир
-        isDragging = true;
-        
-        // ✅ ЯВНО указываем view камеры для координат игрового мира
-        lastMousePos = window.mapPixelToCoords(
-            sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 
-            view  // ← используем view камеры
-        );
-        
-        // ✅ Для выбора юнитов тоже используем view камеры
-        sf::Vector2f worldPos = window.mapPixelToCoords(
-            sf::Vector2i(event.mouseButton.x, event.mouseButton.y), 
-            view  // ← используем view камеры
-        );
-        
-        if (waitingForMove && selectedTroop) {
-            handleTargetSelection(worldPos);
-        } else {
-            handleTroopSelection(worldPos);
-        }
+    if (event.mouseButton.button != sf::Mouse::Left)
+        return;
+
+    sf::Vector2i pixelPos(event.mouseButton.x, event.mouseButton.y);
+
+    // UI координаты — ТОЛЬКО defaultView
+    sf::Vector2f uiMousePos = window.mapPixelToCoords(pixelPos, defaultView);
+
+    if (isUIAreaClicked(uiMousePos)) {
+        handleUIClick(uiMousePos);
+        return;
+    }
+
+    isDragging = true;
+
+    lastMousePos = window.mapPixelToCoords(pixelPos, view);
+
+    sf::Vector2f worldPos = window.mapPixelToCoords(pixelPos, view);
+
+    if (waitingForMove && selectedTroop) {
+        handleTargetSelection(worldPos);
+    } else {
+        handleTroopSelection(worldPos);
     }
 }
+
 
 void Game::handleMouseWheel(const sf::Event& event) {
     // Получаем положение курсора в окне
@@ -90,6 +82,10 @@ void Game::processEvents() {
                 window.close();
                 break;
 
+            case sf::Event::Resized:
+                handleWindowResize(event);
+                break;
+
             case sf::Event::KeyPressed:
                 handleKeyPressed(event);
                 break;
@@ -117,20 +113,37 @@ void Game::processEvents() {
     }
 }
 
+void Game::handleWindowResize(const sf::Event& event) {
+    // Получаем новую ширину и высоту окна
+    float newWidth = static_cast<float>(event.size.width);
+    float newHeight = static_cast<float>(event.size.height);
+    
+    // Обновляем размер viewport'а для камеры (игрового мира)
+    // Сохраняем текущий центр камеры
+    sf::Vector2f oldCenter = view.getCenter();
+    
+    // Устанавливаем новый размер viewport'а
+    // sf::FloatRect(0, 0, 1, 1) означает, что view занимает всё окно
+    view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
+    
+    // Устанавливаем размер view равным размеру окна
+    view.setSize(newWidth, newHeight);
+    
+    // Восстанавливаем центр камеры
+    view.setCenter(oldCenter);
+    
+    // Обновляем defaultView (для UI)
+    defaultView = sf::View(sf::FloatRect(0.f, 0.f, newWidth, newHeight));
+    
+    // Применяем обновлённый вид камеры
+    window.setView(view);
+}
+
 void Game::handleKeyPressed(const sf::Event& event) {
     if (event.key.code == sf::Keyboard::C) {
         colSchemeDefault = (colSchemeDefault == COLORFULL) ? INVERT : COLORFULL;
         colSchemeInactive = (colSchemeInactive == DARK_COLORS) ? INVERT : DARK_COLORS;
     }
-
-    // if (event.key.code == sf::Keyboard::Enter) {
-    //     if (waitingForMove && selectedTroop && targetHex && selectedTroop->getCell() != targetHex) {
-    //         executeShipAction();
-    //         updateVisibleCells();
-    //         render();
-    //     }
-    // }
-
     if (event.key.code == sf::Keyboard::Escape) {
         selectedTroop = nullptr;
     }

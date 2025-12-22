@@ -108,7 +108,7 @@ void Game::executeTroopAction() {
 }
 
 
-void Game::healTroops() {
+void Game::troopsOnPortAction() {
     for (const auto& troop : players[p_id]->getTroops()) {
         auto cell = troop->getCell();
         if (cell->hasBuilding()) {
