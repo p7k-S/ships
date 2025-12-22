@@ -383,19 +383,21 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
             break;
 
         case UpgradeType::BUY_SOLDIER: {
-            bool correct = placeSoldier(*troop->getCell());
-            if (!correct) {
+            if (players[p_id]->getBuildings().size()*2 <= players[p_id]->getTroops().size()) {
                 troop->takeGold(upgradeButton.cost);
                 std::cout << "cannot place new troop" << std::endl;
+            } else {
+                placeSoldier(*troop->getCell());
             }
             break;
         }
 
         case UpgradeType::BUY_SHIP: {
-            bool correct = placeShip(*troop->getCell());
-            if (!correct) {
+            if (players[p_id]->getBuildings().size()*2 <= players[p_id]->getTroops().size()) {
                 troop->takeGold(upgradeButton.cost);
                 std::cout << "cannot place new troop" << std::endl;
+            } else {
+                placeShip(*troop->getCell());
             }
             break;
         }
