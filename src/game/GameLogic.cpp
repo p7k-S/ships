@@ -89,9 +89,11 @@ void Game::executeTroopAction() {
                 // auto t = targetHex->getTroop();
                 // std::cout << "TTTTTTTTTTTTTTT\n";
                 // t->giveDamageToTroop(selectedHex);
-            } else
-            if (targetHex->hasBuilding() && isEnemy(targetHex->getBuilding()->getOwner(), selectedTroop->getOwner())) {
+            } else if (targetHex->hasBuilding() && isEnemy(targetHex->getBuilding()->getOwner(), selectedTroop->getOwner())) {
                 selectedTroop->giveDamageToBuilding(targetHex);
+            } else {
+                ++movesLeft;
+                std::cout << "target hex is not in any range.\n";
             }
     } else {
         ++movesLeft;
@@ -116,9 +118,9 @@ void Game::healTroops() {
             if (cell->getBuilding()->isPort() && troop->hasItem()) {
                 gl::Port* port = static_cast<gl::Port*>(cell->getBuilding());
                 port->addItem(troop->loseItem());
-                std::cout << "PORT ITEMS CNT: " << port->getItemsSize() << std::endl;
+                players[p_id]->incItemsCount();
                 
-                if (port->getItemsSize() == treasuresAmount) {
+                if (players[p_id]->getItemsCount() == treasuresAmount) {
                     endGame = true;
                 }
             }

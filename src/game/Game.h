@@ -11,8 +11,8 @@
 #include "../game/GameConfig.h"
 // #include "Renderer.h"
 // #include "InputHandler.h"
-#include "../net/Server.h"
-#include "../net/Client.h"
+// #include "../net/Server.h"
+// #include "../net/Client.h"
 
 
 namespace gl = GameLogic;
@@ -26,8 +26,8 @@ public:
     int8_t move_amount = 0;
     bool isProcessingTurn = true;
     // net
-    std::unique_ptr<GameServer> gameServer;
-    std::unique_ptr<GameClient> gameClient;
+    // std::unique_ptr<GameServer> gameServer;
+    // std::unique_ptr<GameClient> gameClient;
     bool isHost = false;
     uint8_t connectedPlayers = 0;
     bool isNetworkGame = false; // ⬅️ ДОБАВИТЬ ЭТО
@@ -35,18 +35,18 @@ public:
     bool changeTurnLocal = false;
 private:
     // net
-    void handleNetworkMessages();
-    void sendNetworkMessage(const std::string& message);
-    void createLocalPlayer();
-    void processServerMessage(const std::string& msg);
-    void processClientMessage(const std::string& msg);
-    void sendMap();
-    void receiveMap(const std::string& msg);
-    void sendPlayers();
-    void receivePlayers(const std::string& msg);
+    // void handleNetworkMessages();
+    // void sendNetworkMessage(const std::string& message);
+    // void createLocalPlayer();
+    // void processServerMessage(const std::string& msg);
+    // void processClientMessage(const std::string& msg);
+    // void sendMap();
+    // void receiveMap(const std::string& msg);
+    // void sendPlayers();
+    // void receivePlayers(const std::string& msg);
     
-    void sendTroopAction(int fromQ, int fromR, int toQ, int toR);
-    void executeNetworkAction(const std::string& msg);
+    // void sendTroopAction(int fromQ, int fromR, int toQ, int toR);
+    // void executeNetworkAction(const std::string& msg);
 
     int8_t getMoveAmount() const {
         return move_amount;
@@ -193,6 +193,7 @@ private:
         MOVE_RANGE,
         BUY_SHIP,
         BUY_SOLDIER,
+        BUY_PORT,
         CONVERT
     };
 

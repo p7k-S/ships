@@ -2,44 +2,18 @@
 #include "map/GenerateMap.h"
 #include "GameConfig.h"
 #include "../render/info_bars.h"
-// #include "items/Gold.h"
 #include "items/Treasure.h"
-#include "buildings/Port.h" // или правильный путь к Port.h
+#include "buildings/Port.h"
 #include "troops/Soldier.h"
 #include <algorithm>
 #include <iostream>
 #include <unordered_set>
 #include <random>
-// #include <iostream>
 
 void Game::generateMap() {
     PerlinNoise perlin(seed);
     hexMap = createMap(perlin, mapWidth, mapHeight, octaves, scale);
 }
-
-// HexBiome getBiomeWithSmoothing(double noiseValue, const BiomeThresholds& thresholds, 
-//                               double transitionWidth = 0.05) {
-//     // Плавные переходы между биомами
-//     if (noiseValue < thresholds.deepWater - transitionWidth) 
-//         return HexBiome::DEEP_WATER;
-//
-//     if (noiseValue < thresholds.deepWater + transitionWidth) {
-//         // Случайный выбор между глубокой водой и водой для плавного перехода
-//         double blend = (noiseValue - (thresholds.deepWater - transitionWidth)) / (2 * transitionWidth);
-//         return (random() < blend) ? HexBiome::WATER : HexBiome::DEEP_WATER;
-//     }
-//
-//     if (noiseValue < thresholds.water - transitionWidth) 
-//         return HexBiome::WATER;
-//
-//     if (noiseValue < thresholds.water + transitionWidth) {
-//         double blend = (noiseValue - (thresholds.water - transitionWidth)) / (2 * transitionWidth);
-//         return (random() < blend) ? HexBiome::LAND : HexBiome::WATER;
-//     }
-//
-//     // ... и так для остальных границ
-//     return HexBiome::LAND;
-// }
 
 void Game::distributeCellTypes() {
     std::vector<double> noiseValues = getNoises(hexMap);
@@ -112,7 +86,6 @@ bool Game::portCanPlayced(const gl::Hex& h) {
                 }
             }
         }
-        // Если клетка за границами - игнорируем её
     }
 
     return hasLandNeighbor;

@@ -13,12 +13,12 @@ namespace GameLogic {
             // std::vector<Troop*> troops;
             // std::vector<Item*> items;
             // std::vector<Building*> buildings;
-            std::vector<std::unique_ptr<Item>> items;
+            int items;
             std::vector<std::unique_ptr<Troop>> troops;
             std::vector<std::unique_ptr<Building>> buildings;
 
         public:
-            Entity(const std::string& NickName, sf::Color col) : name(NickName), color(col) {}
+            Entity(const std::string& NickName, sf::Color col) : name(NickName), color(col), items(0) {}
 
             sf::Color getColor() const { return color; }
 
@@ -29,10 +29,13 @@ namespace GameLogic {
                 return buildings;
             }
             const bool isDead() const {
-                return troops.empty() && buildings.empty();
+                return (troops.empty() && buildings.empty()) || troops.empty();
             }
 
             void setColor(sf::Color& newColor) { color = newColor; }
+
+            void incItemsCount() { items++; }
+            int getItemsCount() { return items; }
 
             void addTroop(std::unique_ptr<Troop> troop) {
                 troops.push_back(std::move(troop));

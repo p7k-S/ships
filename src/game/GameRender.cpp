@@ -25,7 +25,6 @@ void Game::renderUI() {
 }
 
 // Рендерим боковую панель
-// Рендерим боковую панель
 void Game::renderSidebar() {
     int windowWidth = window.getSize().x;
     int windowHeight = window.getSize().y;
@@ -198,8 +197,35 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int windowWidth, int& yPos) {
         troopUpgradeButtons.push_back(upgradeButton);
         yPos += 35;
     }
+
     
     gl::Hex* troopCell = troop->getCell();
+    gl::Hex& cellRef = *troopCell;
+    if (troopCell && !troopCell->hasBuilding() && portCanPlayced(cellRef)) {
+        if (yPos < window.getSize().y - 100) {
+            sf::RectangleShape shipButton(sf::Vector2f(200, 30));
+            shipButton.setPosition(windowWidth - 240, yPos);
+            shipButton.setFillColor(sf::Color(30, 30, 30));
+            shipButton.setOutlineColor(sf::Color(100, 100, 120));
+            shipButton.setOutlineThickness(1);
+            window.draw(shipButton);
+
+            sf::Text shipText("BUY PORT | 500g", EmbeddedResources::main_font, 12);
+            shipText.setPosition(windowWidth - 235, yPos + 8);
+            shipText.setFillColor(sf::Color::White);
+            window.draw(shipText);
+
+            TroopUpgradeButton shipButtonInfo;
+            shipButtonInfo.bounds = shipButton.getGlobalBounds();
+            shipButtonInfo.cost = 500;
+            shipButtonInfo.troop = troop;
+            shipButtonInfo.upgradeType = UpgradeType::BUY_PORT;
+
+            troopUpgradeButtons.push_back(shipButtonInfo);
+            yPos += 35;
+        }
+    }
+
     if (troopCell && troopCell->hasBuilding()) {
         auto* building = troopCell->getBuilding();
         if (building && building->isPort() && yPos < window.getSize().y - 100) {
@@ -371,6 +397,15 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
                 troop->takeGold(upgradeButton.cost);
                 std::cout << "cannot place new troop" << std::endl;
             }
+            break;
+        }
+
+        case UpgradeType::BUY_PORT: {
+            gl::Owner owner = players[p_id].get();
+            auto port = std::make_unique<gl::Port>(owner, troop->getCell());
+            gl::Port* portPtr = port.get();
+            troop->getCell()->setBuildingOf<gl::Port>(portPtr);
+            players[p_id]->addBuilding(std::move(port));
             break;
         }
 

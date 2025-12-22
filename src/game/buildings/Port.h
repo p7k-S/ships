@@ -8,7 +8,7 @@
 namespace GameLogic {
     class Port : public Building {
         private:
-            uint8_t view = 5;         // range(радиус) = 5
+            uint8_t view = 4;         // range(радиус) = 5
             // uint16_t damage;      // 35
             // uint16_t damageRange; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем veiw
             uint16_t heal = 40;      // 100

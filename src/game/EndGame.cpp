@@ -138,7 +138,7 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     
     sf::Text hintText;
     hintText.setFont(EmbeddedResources::main_font);
-    hintText.setString("Press any key to continue...");
+    hintText.setString("ALT + F4...");
     hintText.setCharacterSize(20);
     hintText.setFillColor(sf::Color(200, 200, 220, static_cast<sf::Uint8>(hintAlpha)));
     

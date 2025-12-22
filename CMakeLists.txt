@@ -95,9 +95,6 @@ set(SOURCE_FILES
 
     src/render/ui/UIRenderer.cpp
     src/textures/EmbeddedResources.cpp
-    # net
-    src/net/Client.cpp
-    src/net/Server.cpp
 )
 
 add_executable(GameProject ${SOURCE_FILES})

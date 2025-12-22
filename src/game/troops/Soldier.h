@@ -9,10 +9,10 @@
 namespace GameLogic {
     class Soldier : public Troop {
         private:
-            uint8_t view = 100;         // range(радиус) = 5
-            uint8_t move = 10;         // range(радиус) = 3
+            uint8_t view = 30;         // range(радиус) = 5
+            uint8_t move = 2;         // range(радиус) = 3
             uint16_t damage = 35;      // 35
-            uint16_t damageRange = 1; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
+            uint16_t damageRange = 2; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
             uint16_t health = 100;      // 100
             uint16_t maxHealth = 100;
             uint16_t gold = 0;
