@@ -91,6 +91,7 @@ set(SOURCE_FILES
     src/game/GameMap.cpp 
     src/game/GameUtils.cpp
     src/game/EndGame.cpp
+    src/game/BotsAction.cpp
 
     src/render/ui/UIRenderer.cpp
     src/textures/EmbeddedResources.cpp

@@ -825,3 +825,15 @@ void Game::addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Troop* troop, st
         }
     }
 }
+
+void Game::addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Building* building, std::vector<gl::Hex>& hexMap, gl::RangeMode mode){
+    std::vector<gl::Hex*> newCells = cellsInRange(*building->getCell(), hexMap, building->getView(), mode);
+    std::unordered_set<gl::Hex*> uniqueSet(seenCells.begin(), seenCells.end());
+    seenCells.reserve(seenCells.size() + newCells.size());
+
+    for (auto* cell : newCells) {
+        if (uniqueSet.insert(cell).second) {
+            seenCells.push_back(cell);
+        }
+    }
+}

@@ -249,8 +249,8 @@ void Game::createTroops() {
 
                         if (hexMap[index].setTroopOf<gl::Soldier>(soldierPtr)) {
                             players[i]->addTroop(std::move(soldier));
-                            // addViewedCells(players[i]->getSeenCells(), soldier, hexMap, gl::RangeMode::VIEW);
-                            // addViewedCells(players[i]->getViewableCells(), soldier, hexMap, gl::RangeMode::VIEW);
+                            addViewedCells(players[i]->getSeenCells(), soldierPtr, hexMap, gl::RangeMode::VIEW);
+                            addViewedCells(players[i]->getViewableCells(), soldierPtr, hexMap, gl::RangeMode::VIEW);
                             break;
                         }
                     }
@@ -258,8 +258,8 @@ void Game::createTroops() {
             }
 
             if (selectedHex->setBuildingOf<gl::Port>(portPtr)) {
-                // addViewedCells(players[i]->getSeenCells(), port, hexMap, gl::RangeMode::VIEW);
-                // addViewedCells(players[i]->getViewableCells(), port, hexMap, gl::RangeMode::VIEW);
+                addViewedCells(players[i]->getSeenCells(), portPtr, hexMap, gl::RangeMode::VIEW);
+                addViewedCells(players[i]->getViewableCells(), portPtr, hexMap, gl::RangeMode::VIEW);
 
                 players[i]->addBuilding(std::move(port));
 
@@ -271,7 +271,6 @@ void Game::createTroops() {
                     std::cout << "DEBUG: Player " << i << " now has " << players[i]->getTroops().size() << " troops" << std::endl;
 
                     addViewedCells(players[i]->getSeenCells(), shipPtr, hexMap, gl::RangeMode::VIEW);
-                    // это нужно т.к. хост создает и id всегда хостовое
                     addViewedCells(players[i]->getViewableCells(), shipPtr, hexMap, gl::RangeMode::VIEW);
                 }
 

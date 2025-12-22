@@ -21,6 +21,11 @@ namespace GameLogic {
             (dq == 1 && dr == 1 && (h1.q % 2 == h2.q % 2));  // оба четные или оба нечетные
     }
 
+    int hexDistance(const Hex& a, const Hex& b) {
+        return (abs(a.q - b.q) + abs(a.q + a.r - b.q - b.r) + abs(a.r - b.r)) / 2;
+    }
+
+
     std::vector<Hex> getNeighbors(const Hex& h) {
         const auto& dirs = (h.q % 2 == 0) ? DIRECTIONS_EVEN : DIRECTIONS_ODD;
 

@@ -9,8 +9,6 @@
 #include <string>
 
 
-Game::Game() {}
-
 
 void Game::sendPlayers() {
     std::string msg = "PLAYERS:" + std::to_string(players.size()) + ":";
@@ -312,7 +310,11 @@ void Game::run() {
 
 
         if (endGame) {
-            showVictoryScreen(p_id);
+            if (!lose) {
+                showVictoryScreen(p_id);
+            } else {
+                showLoseScreen();
+            }
         } else { 
             if (isProcessingTurn) {
                 totalTurnCount++;
@@ -338,7 +340,9 @@ uint8_t Game::nextAlivePlayer() {
     if (playersAmount > 1) {
         for (uint8_t i = 1; i < playersAmount; ++i) {
             uint8_t nextPlayer = (p_id + i) % playersAmount;
-            // std::cout << "Checking player " << (int)nextPlayer << " - isDead: " << players[nextPlayer]->isDead() << std::endl;
+            if (nextPlayer < (p_id + i)) {
+                processBotsTrurns();
+            }
 
             if (!players[nextPlayer]->isDead()) {
                 setMoveAmount(players[nextPlayer]->getTroops().size());
@@ -349,6 +353,8 @@ uint8_t Game::nextAlivePlayer() {
         endGame = true;
         return p_id;
     } else {
+        if (totalTurnCount > 1)
+            processBotsTrurns();
         setMoveAmount(players[0]->getTroops().size());
         return 0;
     }

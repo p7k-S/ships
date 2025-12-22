@@ -231,3 +231,124 @@ void Game::showVictoryScreen(uint8_t winnerId) {
         }
     }
 }
+
+void Game::renderLoseScreen() {
+    sf::View originalView = window.getView();
+    window.setView(window.getDefaultView());
+    
+    // Фон с затемнением
+    window.clear(sf::Color(30, 10, 10, 230));
+    
+    sf::Vector2u windowSize = window.getSize();
+    
+    // Баннер поражения
+    sf::RectangleShape banner(sf::Vector2f(windowSize.x * 0.8f, 250));
+    banner.setPosition(windowSize.x * 0.1f, windowSize.y * 0.2f);
+    banner.setFillColor(sf::Color(60, 30, 30, 240));
+    banner.setOutlineThickness(5);
+    banner.setOutlineColor(sf::Color(180, 50, 50));
+    window.draw(banner);
+    
+    // Текст "ПОРАЖЕНИЕ"
+    sf::Text loseText;
+    loseText.setFont(EmbeddedResources::main_font);
+    loseText.setString("DEFEAT");
+    loseText.setCharacterSize(72);
+    loseText.setFillColor(sf::Color(220, 80, 80));
+    loseText.setStyle(sf::Text::Bold);
+    
+    sf::FloatRect loseBounds = loseText.getLocalBounds();
+    loseText.setOrigin(loseBounds.left + loseBounds.width / 2.0f,
+                      loseBounds.top + loseBounds.height / 2.0f);
+    loseText.setPosition(windowSize.x / 2.0f, banner.getPosition().y + 80);
+    
+    // Тень
+    sf::Text loseShadow = loseText;
+    loseShadow.setFillColor(sf::Color(0, 0, 0, 150));
+    loseShadow.setPosition(loseText.getPosition().x + 4, loseText.getPosition().y + 4);
+    
+    window.draw(loseShadow);
+    window.draw(loseText);
+    
+    // Сообщение
+    sf::Text messageText;
+    messageText.setFont(EmbeddedResources::main_font);
+    messageText.setString("You were defeated by the bots");
+    messageText.setCharacterSize(32);
+    messageText.setFillColor(sf::Color(220, 180, 180));
+    
+    sf::FloatRect messageBounds = messageText.getLocalBounds();
+    messageText.setOrigin(messageBounds.left + messageBounds.width / 2.0f,
+                         messageBounds.top + messageBounds.height / 2.0f);
+    messageText.setPosition(windowSize.x / 2.0f, loseText.getPosition().y + 90);
+    
+    window.draw(messageText);
+    
+    // Статистика игры
+    sf::Text statsText;
+    statsText.setFont(EmbeddedResources::main_font);
+    statsText.setString("Turns survived: " + std::to_string(totalTurnCount));
+    statsText.setCharacterSize(28);
+    statsText.setFillColor(sf::Color(200, 150, 150));
+    
+    sf::FloatRect statsBounds = statsText.getLocalBounds();
+    statsText.setOrigin(statsBounds.left + statsBounds.width / 2.0f,
+                       statsBounds.top + statsBounds.height / 2.0f);
+    statsText.setPosition(windowSize.x / 2.0f, messageText.getPosition().y + 60);
+    
+    window.draw(statsText);
+    
+    // Мерцающая подсказка внизу
+    static sf::Clock hintClock;
+    float hintAlpha = 128 + 127 * sin(hintClock.getElapsedTime().asSeconds() * 2);
+    
+    sf::Text hintText;
+    hintText.setFont(EmbeddedResources::main_font);
+    hintText.setString("Press any key to continue...");
+    hintText.setCharacterSize(20);
+    hintText.setFillColor(sf::Color(200, 150, 150, static_cast<sf::Uint8>(hintAlpha)));
+    
+    sf::FloatRect hintBounds = hintText.getLocalBounds();
+    hintText.setOrigin(hintBounds.left + hintBounds.width / 2.0f,
+                      hintBounds.top + hintBounds.height / 2.0f);
+    hintText.setPosition(windowSize.x / 2.0f, windowSize.y - 50);
+    
+    window.draw(hintText);
+    
+    window.display();
+}
+
+void Game::showLoseScreen() {
+    bool loseScreenActive = true;
+    sf::Clock frameClock;
+    
+    while (window.isOpen() && loseScreenActive) {
+        // Обработка событий
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed) {
+                window.close();
+                return;
+            }
+            else if (event.type == sf::Event::KeyPressed) {
+                // Любая клавиша закрывает экран поражения
+                loseScreenActive = false;
+                return;
+            }
+            else if (event.type == sf::Event::MouseButtonPressed) {
+                // Клик мышью также закрывает экран поражения
+                loseScreenActive = false;
+                return;
+            }
+        }
+        
+        // Рендерим экран поражения
+        renderLoseScreen();
+        
+        // Ограничиваем FPS для плавной анимации
+        sf::Time frameTime = frameClock.restart();
+        if (frameTime < sf::milliseconds(16)) {
+            sf::sleep(sf::milliseconds(16) - frameTime);
+        }
+    }
+}

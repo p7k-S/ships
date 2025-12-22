@@ -82,6 +82,7 @@ namespace GameLogic {
     struct HexEdgeHash;
 
     bool portCanPlayced(const Hex& h);
+    int hexDistance(const Hex& a, const Hex& b);
     std::vector<Hex*> cellsInRange(Hex& start, std::vector<Hex>& hexMap, uint8_t maxMoves, const RangeMode mode); // ship.cpp
     std::vector<HexEdge> getHexEdges(Hex* hex);
     std::vector<HexEdge> getPerimeterEdges(const std::vector<Hex*>& area, const std::vector<Hex*>& allHexes);

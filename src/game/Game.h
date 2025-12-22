@@ -19,7 +19,6 @@ namespace gl = GameLogic;
 
 class Game {
 public:
-    Game();
     void run();
 
     uint8_t p_id = playersAmount;
@@ -63,6 +62,7 @@ private:
 
     uint16_t totalTurnCount = 0;
     bool endGame = false;
+    bool lose = false;
 
     // Основные методы игрового цикла
     void processEvents();
@@ -80,6 +80,10 @@ private:
     bool startMenu();
     bool loadTextures();
     void processPlayerTurn();
+
+    void processBotsTrurns();
+    void execPirateAction();
+    void execEnemyAction();
     
     // Генерация игрового мира
     void generateMap();
@@ -112,6 +116,7 @@ private:
     void cleanupDestroyedShips();
     void updateVisibleCells();
     void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Troop* troop, std::vector<gl::Hex>& hexMap, gl::RangeMode mode);
+    void addViewedCells(std::vector<gl::Hex*>& seenCells, gl::Building* troop, std::vector<gl::Hex>& hexMap, gl::RangeMode mode);
     
     // Рендеринг
     sf::RenderTexture mapLayer;
@@ -160,6 +165,8 @@ private:
 
     void renderVictoryScreen(uint8_t winnerId);
     void showVictoryScreen(uint8_t winnerId);
+    void showLoseScreen();
+    void renderLoseScreen();
     void drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId);
     // void waitForVictoryInput(uint8_t winnerId);
 
