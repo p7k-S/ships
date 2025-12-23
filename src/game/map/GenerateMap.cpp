@@ -37,31 +37,3 @@ std::vector<double> getNoises(std::vector<GameLogic::Hex>& hexMap){
     }
     return noises;
 }
-
-// void distributeCellTypes(std::vector<GameLogic::Hex> hexMap) {
-//     // Определение уровней высот для типов клеток
-//     std::vector<double> noiseValues = getNoises(hexMap);
-//     std::vector<double> sortedValues = noiseValues;
-//     std::sort(sortedValues.begin(), sortedValues.end());
-//
-//     double deepWater = sortedValues[noiseValues.size() * deepWater_delim];
-//     double water = sortedValues[noiseValues.size() * water_delim];
-//     double land = sortedValues[noiseValues.size() * land_delim];
-//
-//     // Распределение клеток по типам
-//     for (auto& hex : hexMap) {
-//         double value = hex.getNoise();
-//         CellType type;
-//
-//         if (value <= deepWater) {
-//             type = gl::CellType::DEEPWATER;
-//         } else if (value <= water) {
-//             type = gl::CellType::WATER;
-//         } else if (value <= land) {
-//             type = gl::CellType::LAND;
-//         } else {
-//             type = gl::CellType::FOREST;
-//         }
-//         hex.setCellType(type);
-//     }
-// }

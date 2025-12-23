@@ -17,9 +17,7 @@ extern bool unknown_map;
 extern double hexRadius;
 
 extern uint8_t font_size;
-// extern std::string font_path;
 
-// based on map size
 extern uint16_t treasuresAmount;
 extern double gold_perc_in_map;
 extern double percent_ships_in_water;

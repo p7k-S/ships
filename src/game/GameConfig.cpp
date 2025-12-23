@@ -19,7 +19,6 @@ double water_delim = 0.65;
 double land_delim = 0.9;
 
 uint8_t font_size = 10;
-// std::string font_path = "../src/textures/JetBrainsMonoNLNerdFont-Regular.ttf";
 
 std::unordered_map<std::string, sf::Color> COLORS = {
     // Players color

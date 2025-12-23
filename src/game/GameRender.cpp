@@ -9,13 +9,11 @@
 #include "troops/Soldier.h"
 
 #include "GameLogic.h"
-#include "items/Treasure.h" // Добавьте этот include
+#include "items/Treasure.h"
 
 #include "GameConfig.h"
 #include "GameLogic.h"
 #include <vector>
-// #include <iostream>
-// #include "../render/ui/UIRenderer.h"
 #include "../textures/EmbeddedResources.h"
 #include <algorithm>
 
@@ -38,13 +36,11 @@ void Game::renderSidebar() {
     
     int sidebarX = windowWidth - SIDEBAR_WIDTH;
     
-    // Фон сайдбара
     sf::RectangleShape sidebar(sf::Vector2f(SIDEBAR_WIDTH, windowHeight));
     sidebar.setPosition(sidebarX, 0);
     sidebar.setFillColor(sf::Color(30, 30, 40));
     window.draw(sidebar);
     
-    // Заголовок
     sf::Text title("CELL INFO", EmbeddedResources::main_font, TITLE_FONT_SIZE);
     title.setPosition(sidebarX + PADDING, 20);
     title.setFillColor(sf::Color::White);
@@ -52,7 +48,6 @@ void Game::renderSidebar() {
 
     int yPos = 60;
 
-    // Информация о клетке под курсором
     sf::Vector2i mousePos = sf::Mouse::getPosition(window);
     sf::Vector2f worldPos = window.mapPixelToCoords(mousePos, view);
     gl::Hex* hoveredHex = selectedHex;
@@ -62,7 +57,6 @@ void Game::renderSidebar() {
     }
 
     if (hoveredHex && std::find(vc.begin(), vc.end(), hoveredHex) != vc.end()) {
-        // Координаты
         sf::Text coordText("Coord: (" + std::to_string(hoveredHex->q) + "," + std::to_string(hoveredHex->r) + ")", 
                           EmbeddedResources::main_font, NORMAL_FONT_SIZE);
         coordText.setPosition(sidebarX + PADDING, yPos);
@@ -70,7 +64,6 @@ void Game::renderSidebar() {
         window.draw(coordText);
         yPos += LINE_HEIGHT;
 
-        // Тип клетки
         sf::Text typeText("Type: " + std::to_string(static_cast<int>(hoveredHex->getCellType())), 
                          EmbeddedResources::main_font, NORMAL_FONT_SIZE);
         typeText.setPosition(sidebarX + PADDING, yPos);
@@ -78,7 +71,6 @@ void Game::renderSidebar() {
         window.draw(typeText);
         yPos += LINE_HEIGHT;
 
-        // Золото
         sf::Text goldText("Gold: " + std::to_string(hoveredHex->getGold()), 
                          EmbeddedResources::main_font, NORMAL_FONT_SIZE);
         goldText.setPosition(sidebarX + PADDING, yPos);
@@ -86,7 +78,6 @@ void Game::renderSidebar() {
         window.draw(goldText);
         yPos += LINE_HEIGHT;
 
-        // Шум
         sf::Text noiseText("Noise: " + std::to_string(hoveredHex->getNoise()), 
                           EmbeddedResources::main_font, NORMAL_FONT_SIZE);
         noiseText.setPosition(sidebarX + PADDING, yPos);
@@ -94,7 +85,6 @@ void Game::renderSidebar() {
         window.draw(noiseText);
         yPos += LINE_HEIGHT;
 
-        // Юнит
         if (hoveredHex->hasTroop()) {
             sf::Text troopText("Has Unit", EmbeddedResources::main_font, NORMAL_FONT_SIZE);
             troopText.setPosition(sidebarX + PADDING, yPos);
@@ -103,7 +93,6 @@ void Game::renderSidebar() {
             yPos += LINE_HEIGHT;
         }
 
-        // Здание
         if (hoveredHex->hasBuilding()) {
             sf::Text buildingText("Has Building", EmbeddedResources::main_font, NORMAL_FONT_SIZE);
             buildingText.setPosition(sidebarX + PADDING, yPos);
@@ -112,7 +101,6 @@ void Game::renderSidebar() {
             yPos += LINE_HEIGHT;
         }
 
-        // Предметы
         sf::Text itemsText("Items: " + std::to_string(hoveredHex->getItemsSize()), 
                           EmbeddedResources::main_font, NORMAL_FONT_SIZE);
         itemsText.setPosition(sidebarX + PADDING, yPos);
@@ -121,7 +109,6 @@ void Game::renderSidebar() {
         yPos += LINE_HEIGHT;
     }
 
-    // Если выбран юнит - показываем улучшения снизу
     if (selectedTroop) {
         yPos += 10;
         sf::Text titleTroop("Troop info", EmbeddedResources::main_font, TITLE_FONT_SIZE);
@@ -130,7 +117,6 @@ void Game::renderSidebar() {
         window.draw(titleTroop);
         yPos += 35;
 
-        // Troop info
         std::ostringstream infoStream;
         infoStream << "Gold: " << selectedTroop->getGold() 
                   << "/" << selectedTroop->getMaxGold() << "\n"
@@ -148,7 +134,6 @@ void Game::renderSidebar() {
         window.draw(troopInfo);
         yPos += 140;
         
-        // Разделительная линия
         sf::RectangleShape divider(sf::Vector2f(SIDEBAR_WIDTH - PADDING * 2, 2));
         divider.setPosition(sidebarX + PADDING, yPos);
         divider.setFillColor(sf::Color(100, 100, 120));
@@ -168,14 +153,12 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth,
     const int BUTTON_HEIGHT = 30;
     const int SMALL_FONT_SIZE = 12;
     
-    // Заголовок улучшений
     sf::Text upgradeTitle("UNIT UPGRADES", EmbeddedResources::main_font, 16);
     upgradeTitle.setPosition(sidebarX + PADDING, yPos);
     upgradeTitle.setFillColor(sf::Color::Yellow);
     window.draw(upgradeTitle);
     yPos += 25;
     
-    // Список улучшений
     std::vector<std::tuple<std::string, int, UpgradeType>> upgrades = {
         {"+20 HP", 100, UpgradeType::HEALTH},
         {"+20 DMG", 100, UpgradeType::DAMAGE}, 
@@ -191,7 +174,6 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth,
         
         if (yPos > window.getSize().y - 100) break;
         
-        // Фон кнопки
         sf::RectangleShape button(sf::Vector2f(BUTTON_WIDTH, BUTTON_HEIGHT));
         button.setPosition(sidebarX + PADDING, yPos);
         button.setFillColor(sf::Color(60, 60, 80));
@@ -199,14 +181,12 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth,
         button.setOutlineThickness(1);
         window.draw(button);
         
-        // Текст кнопки
         sf::Text buttonText(text + " | " + std::to_string(cost) + "g", 
                            EmbeddedResources::main_font, SMALL_FONT_SIZE);
         buttonText.setPosition(sidebarX + PADDING + 5, yPos + 8);
         buttonText.setFillColor(sf::Color::White);
         window.draw(buttonText);
         
-        // Сохраняем кнопку
         TroopUpgradeButton upgradeButton;
         upgradeButton.bounds = button.getGlobalBounds();
         upgradeButton.cost = cost;
@@ -249,7 +229,6 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth,
         if (building && building->isPort() && yPos < window.getSize().y - 100) {
             yPos += 10;
             
-            // Кнопка покупки солдата
             if (yPos < window.getSize().y - 100) {
                 sf::RectangleShape soldierButton(sf::Vector2f(BUTTON_WIDTH, BUTTON_HEIGHT));
                 soldierButton.setPosition(sidebarX + PADDING, yPos);
@@ -273,7 +252,6 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth,
                 yPos += BUTTON_HEIGHT + 5;
             }
             
-            // Кнопка покупки корабля
             if (yPos < window.getSize().y - 100) {
                 sf::RectangleShape shipButton(sf::Vector2f(BUTTON_WIDTH, BUTTON_HEIGHT));
                 shipButton.setPosition(sidebarX + PADDING, yPos);
@@ -325,39 +303,33 @@ void Game::renderTroopUpgrades(gl::Troop* troop, int sidebarX, int sidebarWidth,
     }
 }
 
-// Рендерим нижнюю панель
 void Game::renderBottomBar() {
     int windowWidth = window.getSize().x;
     int windowHeight = window.getSize().y;
     
-    // Фиксированные размеры
     const int BOTTOM_BAR_HEIGHT = 80;
     const int FONT_SIZE = 18;
     const int CONTROLS_FONT_SIZE = 14;
     
     int bottomBarY = windowHeight - BOTTOM_BAR_HEIGHT;
     
-    // Фон нижней панели
     sf::RectangleShape bottomBar(sf::Vector2f(windowWidth, BOTTOM_BAR_HEIGHT));
     bottomBar.setPosition(0, bottomBarY);
     bottomBar.setFillColor(sf::Color(25, 25, 35));
     window.draw(bottomBar);
     
-    // Счетчик ходов
     sf::Text turnText("Turn: " + std::to_string(totalTurnCount), 
                       EmbeddedResources::main_font, FONT_SIZE);
     turnText.setPosition(20, bottomBarY + 20);
     turnText.setFillColor(sf::Color::White);
     window.draw(turnText);
     
-    // Информация о текущем игроке
     sf::Text playerText("Player: " + players[p_id]->getName(),
                         EmbeddedResources::main_font, FONT_SIZE);
     playerText.setPosition(150, bottomBarY + 20);
     playerText.setFillColor(players[p_id]->getColor());
     window.draw(playerText);
 
-    // Информация % карты 
     int exploredPercent = (players[p_id]->getSeenCells().size() * 100) / (mapHeight * mapWidth);
     sf::Text exploredText("Explored: " + std::to_string(exploredPercent) + "%",
                          EmbeddedResources::main_font, FONT_SIZE);
@@ -371,7 +343,6 @@ void Game::renderBottomBar() {
     movesLeft.setFillColor(COLORS["green"]);
     window.draw(movesLeft);
     
-    // Подсказка управления
     sf::Text controls("G - End Turn | C - Color Scheme", 
                       EmbeddedResources::main_font, CONTROLS_FONT_SIZE);
     controls.setPosition(windowWidth - 400, bottomBarY + 50);
@@ -403,7 +374,6 @@ void Game::handleUIClick(const sf::Vector2f& mouseUI) {
     const int SIDEBAR_WIDTH = 250;
     const int BOTTOM_BAR_HEIGHT = 80;
 
-    // Сайдбар
     if (mouseUI.x > windowWidth - SIDEBAR_WIDTH) {
         for (const auto& button : troopUpgradeButtons) {
             if (button.bounds.contains(mouseUI)) {
@@ -413,58 +383,66 @@ void Game::handleUIClick(const sf::Vector2f& mouseUI) {
         }
     }
 
-    // Нижняя панель
-    if (mouseUI.y > windowHeight - BOTTOM_BAR_HEIGHT) {
-        // future logic
-    }
+    // if (mouseUI.y > windowHeight - BOTTOM_BAR_HEIGHT) {
+    //     future logic
+    // }
 }
 
 
 void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
     gl::Troop* troop = upgradeButton.troop;
+    bool cannotUpgrade = false;
     if (!troop) return;
 
-    // Проверяем, достаточно ли золота у игрока
     if (troop->getGold() < upgradeButton.cost) {
-        std::cout << "Not enough gold! Need " << upgradeButton.cost << " gold." << std::endl;
         return;
     }
 
     switch (upgradeButton.upgradeType) {
         case UpgradeType::HEALTH:
-            troop->setHealth(troop->getHealth()+20);
-            std::cout << "Added 20 HP to troop" << std::endl;
+            if (troop->getHealth() >= 500) {
+                cannotUpgrade = true;
+            } else {
+                troop->setHealth(troop->getHealth()+20);
+            }
             break;
             
         case UpgradeType::DAMAGE:
-            troop->setDamage(troop->getDamage()+20);
-            std::cout << "Added 20 damage to troop" << std::endl;
+            if (troop->getDamage() >= 300) {
+                cannotUpgrade = true;
+            } else {
+                troop->setDamage(troop->getDamage()+20);
+            }
             break;
             
         case UpgradeType::VIEW_RANGE:
-            troop->setView(troop->getView()+1);
-            addViewedCells(players[p_id]->getSeenCells(), troop, hexMap, gl::RangeMode::VIEW);
-            std::cout << "Added 1 view range to troop" << std::endl;
+            if (troop->getView() >= 10) {
+                cannotUpgrade = true;
+            } else {
+                troop->setView(troop->getView()+1);
+                addViewedCells(players[p_id]->getSeenCells(), troop, hexMap, gl::RangeMode::VIEW);
+            }
             break;
             
         case UpgradeType::ATTACK_RANGE:
-            if (troop->getView() < troop->getDamageRange()+1)
-                return;
-            troop->setDamageRange(troop->getDamageRange()+1);
-            std::cout << "Added 1 attack range to troop" << std::endl;
+            if (troop->getView() < troop->getDamageRange()+1) {
+                cannotUpgrade = true;
+            } else {
+                troop->setDamageRange(troop->getDamageRange()+1);
+            }
             break;
             
         case UpgradeType::MOVE_RANGE:
-            if (troop->getView() < troop->getMoveRange()+1)
-                return;
-            troop->setMoveRange(troop->getMoveRange()+1);
-            std::cout << "Added 1 move range to troop" << std::endl;
+            if (troop->getView() < troop->getMoveRange()+1) {
+                cannotUpgrade = true;
+            } else {
+                troop->setMoveRange(troop->getMoveRange()+1);
+            }
             break;
 
         case UpgradeType::BUY_SOLDIER: {
             if (players[p_id]->getBuildings().size()*2 <= players[p_id]->getTroops().size()) {
-                troop->takeGold(upgradeButton.cost);
-                std::cout << "cannot place new troop" << std::endl;
+                cannotUpgrade = true;
             } else {
                 placeSoldier(*troop->getCell());
             }
@@ -473,8 +451,7 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
 
         case UpgradeType::BUY_SHIP: {
             if (players[p_id]->getBuildings().size()*2 <= players[p_id]->getTroops().size()) {
-                troop->takeGold(upgradeButton.cost);
-                std::cout << "cannot place new troop" << std::endl;
+                cannotUpgrade = true;
             } else {
                 placeShip(*troop->getCell());
             }
@@ -492,7 +469,6 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
 
         case UpgradeType::CONVERT: {
             troop->loseGold(upgradeButton.cost);
-            std::cout << "Upgrade applied! Cost: " << upgradeButton.cost << " gold" << std::endl;
 
             uint16_t gold = troop->getGold();
             auto item = troop->loseItem();
@@ -513,7 +489,6 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
                 
                 players[p_id]->addTroop(std::move(soldier));
                 
-                std::cout << "Converted Ship to Soldier" << std::endl;
             } else {
                 auto ship = std::make_unique<gl::Ship>(owner, &hexMap[cell->q + cell->r * mapWidth]);
                 ship->takeGold(gold);
@@ -524,21 +499,17 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
                 
                 players[p_id]->addTroop(std::move(ship));
                 
-                std::cout << "Converted Soldier to Ship" << std::endl;
             }
             
             selectedTroop = cell->getTroop();
             
-            std::cout << "Conversion cost: " << upgradeButton.cost << " gold" << std::endl;
             break;
         } 
         default:
-            std::cout << "Unknown upgrade type" << std::endl;
             return;
     }
-    if (!(upgradeButton.upgradeType == UpgradeType::CONVERT)) {
+    if (!(upgradeButton.upgradeType == UpgradeType::CONVERT) && !cannotUpgrade) {
         troop->loseGold(upgradeButton.cost);
-        std::cout << "Upgrade applied! Cost: " << upgradeButton.cost << " gold" << std::endl;
     }
 }
 
@@ -593,12 +564,11 @@ void Game::renderWaitMove() {
 
     sf::Text shadow = text;
     shadow.setFillColor(sf::Color(0, 0, 0, 150));
-    shadow.setPosition(text.getPosition().x + 3, text.getPosition().y + 3); // Смещаем относительно основного текста
+    shadow.setPosition(text.getPosition().x + 3, text.getPosition().y + 3);
     
-    window.draw(shadow);    // Тень
-    window.draw(text);      // Основной текст
+    window.draw(shadow);
+    window.draw(text);
     
-    // Анимированная подсказка
     static sf::Clock blinkClock;
     float blinkTime = blinkClock.getElapsedTime().asSeconds();
     if (static_cast<int>(blinkTime * 2) % 2 == 0) {
@@ -642,7 +612,6 @@ void Game::drawCornerDecorations(sf::RenderWindow& window) {
 }
 
 void Game::renderMap() {
-    // Получаем видимую область камеры
     sf::FloatRect viewBounds = getViewBounds();
     
     for (const auto& hexp : players[p_id]->getSeenCells()) {
@@ -650,9 +619,8 @@ void Game::renderMap() {
         double x_pos = hex.q * hexRadius * 1.5;
         double y_pos = hex.r * hexRadius * sqrt(3) + (hex.q % 2) * hexRadius * sqrt(3) / 2.0;
         
-        // Проверяем, находится ли гекс в области видимости
         if (!isHexInView(x_pos, y_pos, hexRadius, viewBounds)) {
-            continue; // Пропускаем невидимые гексы
+            continue;
         }
         
         renderHex(hex, x_pos, y_pos);
@@ -671,34 +639,17 @@ sf::FloatRect Game::getViewBounds() {
     return sf::FloatRect(center.x - size.x/2 - 30, center.y - size.y/2 - 30, size.x, size.y);
 }
 
-void Game::renderPath() {
-    for (auto* hex : currentPath) {
-        sf::CircleShape marker(hexRadius / 3);
-        marker.setFillColor(sf::Color(100, 200, 255, 120));
-        marker.setOrigin(marker.getRadius(), marker.getRadius());
-        
-        float hx = hex->q * hexRadius * 1.5f + 50;
-        float hy = hex->r * hexRadius * sqrt(3) + (hex->q % 2) * hexRadius * sqrt(3) / 2.0f + 50;
-        marker.setPosition(hx, hy);
-        
-        window.draw(marker);
-    }
-}
-
 void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
     sf::ConvexShape hexShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
 
-    // Определяем видимость и цветовую схему
     std::vector<gl::Hex*> view_cells = players[p_id]->getViewableCells();
     bool isVisible = std::find(view_cells.begin(), view_cells.end(), &hex) != view_cells.end();
     auto currentScheme = isVisible ? colSchemeDefault : colSchemeInactive;
 
     hexShape.setFillColor(getColorByScheme(hex.getNoise(), currentScheme, deepWater, water, land));
     hexShape.setOutlineColor(COLORS[isVisible ? "dark_gray" : "very_dark_gray"]);
-    // hexShape.setOutlineColor(COLORS["dark_gray"]);
     hexShape.setOutlineThickness(1);
 
-    // Подготовка спрайтов
     sf::Sprite sprite;
     bool hasGold = false;
     bool hasBuilding = false;
@@ -718,7 +669,6 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
                     }, ownerVariant);
 
             hexShape.setFillColor(color);
-            // hexShape.setOutlineThickness(3);
         }
 
         if (hasTroop) {
@@ -742,18 +692,12 @@ void Game::renderHex(const gl::Hex& hex, float x_pos, float y_pos) {
         normlaizeSprite(sprite, hexRadius, x_pos, y_pos);
     }
 
-    // Выделение выбранного гекса
     if (!selectedTroop && selectedHex && hex.q == selectedHex->q && hex.r == selectedHex->r) {
         hexShape.setOutlineColor(COLORS["deep_yellow"]);
         hexShape.setOutlineThickness(2);
     }
 
-    // Отрисовка всего за один проход
     window.draw(hexShape);
-    
-    // if (hasTreasure || hasGold) {
-    //     window.draw(goldSprite);
-    // }
     
     if (hasGold) {
         drawResourceText(window, hex, x_pos + 50, y_pos + 50, hexRadius, EmbeddedResources::main_font, font_size);
@@ -770,14 +714,12 @@ void Game::renderShipRange() {
     gl::Hex* selectedHex = selectedTroop->getCell();
     if (!selectedHex) return;
 
-    // Диапазон перемещения
     std::vector<gl::Hex*> reachableHexes = cellsInRange(
         *selectedHex, hexMap, selectedTroop->getMoveRange(), gl::RangeMode::MOVE);
     for (gl::Hex* reachableHex : reachableHexes) {
         renderRangeHex(reachableHex, sf::Color(100, 255, 100, 80), sf::Color(112, 129, 88, 255));
     }
 
-    // Диапазон атаки
     std::vector<gl::Hex*> attackRangeHexes = cellsInRange(
         *selectedHex, hexMap, selectedTroop->getDamageRange(), gl::RangeMode::DAMAGE);
     for (gl::Hex* attackHex : attackRangeHexes) {

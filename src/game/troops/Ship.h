@@ -16,7 +16,7 @@ namespace GameLogic {
 
     class Ship : public Troop {
         private:
-            uint8_t view = 200;         // range(радиус) = 5
+            uint8_t view = 3;         // range(радиус) = 5
             uint8_t move = 2;         // range(радиус) = 3
             uint16_t damage = 25;      // 35
             uint16_t damageRange = 2; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
@@ -74,7 +74,6 @@ namespace GameLogic {
                 Building* building = targetCell->getBuilding();
                 building->takeDamage(damage);
                 if (building->isDestroyed()) {
-                    std::cout << "building->isDestroyed()\n";
                     if (building->isPort()) {
                         building->lostResources(this);
                     }
@@ -89,7 +88,6 @@ namespace GameLogic {
                         building->getOwner()
                     );
 
-                    std::cout << "removed building\n";
                 }
             }
 
@@ -165,7 +163,6 @@ namespace GameLogic {
 
             void takeItemByIndexFromCell(size_t index) override {
                 if (item) {
-                    std::cout << "Firstly remove item from ship\n";
                     return;
                 }
                 item = getCell()->giveItemByIndex(index);

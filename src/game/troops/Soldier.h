@@ -9,7 +9,7 @@
 namespace GameLogic {
     class Soldier : public Troop {
         private:
-            uint8_t view = 30;         // range(радиус) = 5
+            uint8_t view = 3;         // range(радиус) = 5
             uint8_t move = 2;         // range(радиус) = 3
             uint16_t damage = 35;      // 35
             uint16_t damageRange = 2; // >= 1 (по дефолту 1 далее move - 2) !!не больше чем view
@@ -26,15 +26,6 @@ namespace GameLogic {
             // Конструктор
             Soldier(Owner owner, Hex* currCell):
                 Troop(owner, currCell)
-                // view(5),    // 4  2
-                // move(4),    // 2  1
-                // damage(50), // 30 20
-                // damageRange(3),
-                // health(100),
-                // maxHealth(100),
-                // gold(200),
-                // maxGold(1000),
-                // item(nullptr)
         {}
 
             Type getType() const override { return Type::SOLDIER; }
@@ -67,10 +58,10 @@ namespace GameLogic {
                 Building* building = targetCell->getBuilding();
                 building->takeDamage(damage);
                 if (building->isDestroyed()) {
+                    if (building->isPort()) {
+                        building->lostResources(this);
+                    }
                     targetCell->removeBuilding();
-
-                    std::cout << "building->isDestroyed()\n";
-                    // lostResources(building);
 
                     std::visit(
                         [building](auto* ownerPtr) {
@@ -81,7 +72,6 @@ namespace GameLogic {
                         building->getOwner()
                     );
 
-                    std::cout << "removed building\n";
                 }
             }
 
@@ -155,7 +145,6 @@ namespace GameLogic {
 
             void takeItemByIndexFromCell(size_t index) override {
                 if (item) {
-                    std::cout << "First remove item from ship\n";
                     return;
                 }
                 item = getCell()->giveItemByIndex(index);

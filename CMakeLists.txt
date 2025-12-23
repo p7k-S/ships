@@ -85,19 +85,17 @@ set(SOURCE_FILES
     src/game/GameConfig.cpp
     src/game/Game.cpp
     src/game/GameInit.cpp
+    src/game/GameUtils.cpp
     src/game/GameRender.cpp
     src/game/GameEvents.cpp 
     src/game/GameLogic.cpp
     src/game/GameMap.cpp 
-    src/game/GameUtils.cpp
     src/game/EndGame.cpp
     src/game/BotsAction.cpp
 
-    src/render/ui/UIRenderer.cpp
     src/textures/EmbeddedResources.cpp
 )
 
 add_executable(GameProject ${SOURCE_FILES})
-# add_dependencies(GameProject embedded_resources)
 
-target_link_libraries(GameProject PRIVATE sfml-graphics sfml-window sfml-system sfml-network)
+target_link_libraries(GameProject PRIVATE sfml-graphics sfml-window)

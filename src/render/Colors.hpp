@@ -31,8 +31,3 @@ inline sf::Color getColorByScheme(double value, ColorScheme scheme, double deepW
             return getColorByThreshold_view(value, deepWater, water, land);
     }
 }
-
-// Пример использования:
-// sf::Color getColor(double value, double deepWater, double water, double land) {
-//     return getColorByScheme(value, defaultScheme, deepWater, water, land);
-// }

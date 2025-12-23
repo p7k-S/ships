@@ -6,7 +6,6 @@
 #include <memory>
 #include <variant>
 #include "../items/BaseItem.h"
-#include "../items/Gold.h"
 
 #include "../troops/BaseTroop.h"
 #include "../buildings/BaseBuild.h"
@@ -70,21 +69,6 @@ namespace GameLogic {
                 return item != nullptr;
             }
 
-         // template<typename T, typename... Args>
-         //    void addStackable(Args&&... args) {
-         //        static_assert(std::is_base_of<Item, T>::value, "T must derive from Item");
-         //
-         //        if constexpr (sizeof...(Args) == 1) {
-         //            if (T* existingItem = getItemOf<T>()) {
-         //                uint16_t amount = static_cast<uint16_t>(std::get<0>(std::make_tuple(args...)));
-         //                existingItem->addItemAmount(amount);
-         //                return;
-         //            }
-         //        }
-         //
-         //        items.push_back(std::make_unique<T>(std::forward<Args>(args)...));
-         //    }
-
         // Items
          template<typename T, typename... Args>
              void addItem(Args&&... args) {
@@ -138,22 +122,6 @@ namespace GameLogic {
         void removeTroop() { troop = nullptr; }
         void removeBuilding() { building = nullptr; }
 
-        // template<typename T>
-        //     bool hasTroopOf() const {
-        //         static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
-        //         return troop && dynamic_cast<const T*>(troop) != nullptr;
-        //         // было: troop.get() | стало: troop
-        //     }
-
-        // ✅ Исправленный getTroopOf  
-        // template<typename T>
-        //     T* getTroopOf() const {
-        //         static_assert(std::is_base_of_v<Troop, T>, "T must derive from Troop");
-        //         return troop ? dynamic_cast<T*>(troop) : nullptr;
-        //         // было: troop.get() | стало: troop
-        //     }
-
-        // ✅ Исправленный removeTroop
 
         // Buildings
         bool hasBuilding() const { return building ? true : false; }

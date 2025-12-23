@@ -2,12 +2,8 @@
 #include "GameLogic.h"
 #include "../render/info_bars.h"
 #include "../game/entity/Player.h"
-// #include "../game/troops/Ship.h"
 #include "../game/map/Cell.h"
-// #include "../game/troops/BaseTroop.h"
-// #include <cstdint>
 #include <cstdint>
-#include <iostream>
 
 void Game::handleTroopSelection(const sf::Vector2f& worldPos) {
     for (auto& hex : hexMap) {
@@ -16,7 +12,6 @@ void Game::handleTroopSelection(const sf::Vector2f& worldPos) {
                 selectedTroop = hex.getTroop();
                 waitingForMove = true;
                 targetHex = nullptr;
-                currentPath.clear();
             } else {
                 selectedHex = &hex;
                 selectedTroop = nullptr;
@@ -33,8 +28,6 @@ void Game::handleTargetSelection(const sf::Vector2f& worldPos) {
             targetHex = &hex;
             if (waitingForMove && selectedTroop && targetHex) {
                 executeTroopAction();
-                // updateVisibleCells();
-                // render();
             }
             break;
         }
@@ -71,38 +64,24 @@ void Game::executeTroopAction() {
 
     if (selectedTroop->canMoveTo(targetHex) && std::find(reachableHexes.begin(), reachableHexes.end(), targetHex)!= reachableHexes.end()) {
         selectedTroop->moveTo(targetHex);
-        std::cout << "DEBUG: After move - troop cell: " 
-            << (selectedTroop->getCell() ? "exists" : "nullptr") << std::endl;
-        std::cout << "DEBUG: After move - troop in player list: " 
-            << players[p_id]->getTroops().size() << std::endl;
-        std::cout << "DEBUG: After move - troop on target cell: " 
-            << (targetHex->getTroop() == selectedTroop) << std::endl;
-
         selectedTroop->takeGoldFromCell(targetHex);
         selectedTroop->takeItemByIndexFromCell(0);
         addViewedCells(players[p_id]->getSeenCells(), selectedTroop, hexMap, gl::RangeMode::VIEW);
-        // updateVisibleCells();
 
     } else if (std::find(attackRangeHexes.begin(), attackRangeHexes.end(), targetHex) != attackRangeHexes.end()) {
             if (targetHex->hasTroop() && isEnemy(targetHex->getTroop()->getOwner(), selectedTroop->getOwner())) {
                 selectedTroop->giveDamageToTroop(targetHex);
-                // auto t = targetHex->getTroop();
-                // std::cout << "TTTTTTTTTTTTTTT\n";
-                // t->giveDamageToTroop(selectedHex);
             } else if (targetHex->hasBuilding() && isEnemy(targetHex->getBuilding()->getOwner(), selectedTroop->getOwner())) {
                 selectedTroop->giveDamageToBuilding(targetHex);
             } else {
                 ++movesLeft;
-                std::cout << "target hex is not in any range.\n";
             }
     } else {
         ++movesLeft;
-        std::cout << "target hex is not in any range.\n";
     }
 
     --movesLeft;
     setMoveAmount(movesLeft);
-    std::cout << "Moves left "<< (int)movesLeft << "\n";
 
     resetSelection();
 }

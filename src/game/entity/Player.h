@@ -6,7 +6,6 @@
 #include "BaseEntity.h"
 #include "../items/BaseItem.h"
 #include "../troops/BaseTroop.h"
-// #include "../buildings/BaseBuild.h"
 
 namespace GameLogic {
     // возможно несколько игроков
@@ -45,7 +44,6 @@ namespace GameLogic {
             //net
             void setPosition(int x, int y) { this->x = x; this->y = y; }
             // GETTERS
-            // --- sf::Color getColor() const { return color; } from Entity
             std::string getName() const { return name; }
             uint8_t getId() const { return playerId; }
             std::vector<uint8_t> getFriendsIds() {
@@ -54,7 +52,6 @@ namespace GameLogic {
 
 
             // SETTERS
-            // --- void setColor(sf::Color& newColor) { color = newColor; }
             void appendFriendsId(uint8_t friendId) {
                 friendsId.emplace_back(friendId);
             }
@@ -62,9 +59,6 @@ namespace GameLogic {
                 auto it = std::find(friendsId.begin(), friendsId.end(), friendId);
                 if (it != friendsId.end()) {
                     friendsId.erase(it);
-                    std::cout << "friend " << friendId << " removed\n";
-                } else {
-                    std::cout << "friend " << friendId << " not found\n";
                 }
             }
             
@@ -84,11 +78,5 @@ namespace GameLogic {
             std::vector<Hex*>& getSeenCells() {
                 return seenCells;
             }
-            // ADD TROOPS
-            // ✅ Создание и добавление через внешний фабричный метод
-            // template<typename T, typename... Args>
-            //     void addTroop(Args&&... args) {
-            //         troops.push_back(std::make_unique<T>(std::forward<Args>(args)...));
-            //     }
     };
 }; // namespace GameLogic

@@ -3,7 +3,6 @@
 #include <cmath>
 #include <iostream>
 #include "../../game/GameConfig.h"
-// #include "../../textures/EmbeddedResources.h"
 #include "../../textures/UIfont.h"
 
 class SimpleConfigUI {
@@ -115,7 +114,7 @@ private:
             case 3: return std::to_string(persistance).substr(0, 4);
             case 4: return std::to_string(seed);
             case 5: return std::to_string(octaves);
-            case 6: return std::to_string(static_cast<int>(playersAmount)); // Явное приведение к int
+            case 6: return std::to_string(static_cast<int>(playersAmount));
             default: return "";
         }
     }
@@ -127,7 +126,6 @@ private:
         float startY = 60.f;
         float lineHeight = 35.f;
 
-        // Заголовок
         sf::Text title;
         title.setFont(font);
         title.setString("GAME CONFIGURATION");
@@ -138,11 +136,9 @@ private:
         title.setPosition(centerX - titleBounds.width / 2, 15.f);
         window.draw(title);
 
-        // Отображение параметров
         for (size_t i = 0; i < paramNames.size(); ++i) {
             float yPos = startY + i * lineHeight;
 
-            // Стрелка выбора
             if (i == selectedParam) {
                 sf::Text arrow;
                 arrow.setFont(font);
@@ -153,7 +149,6 @@ private:
                 window.draw(arrow);
             }
 
-            // Название параметра
             sf::Text nameText;
             nameText.setFont(font);
             nameText.setString(paramNames[i] + ":");
@@ -162,7 +157,6 @@ private:
             nameText.setPosition(centerX - 150, yPos);
             window.draw(nameText);
 
-            // Значение параметра
             sf::Text valueText;
             valueText.setFont(font);
             valueText.setString(getParamValue(i));
@@ -172,7 +166,6 @@ private:
                 valueText.setStyle(sf::Text::Bold);
             }
             
-            // Для players amount добавляем стрелки
             if (i == 6 && i == selectedParam) {
                 valueText.setString("< " + getParamValue(i) + " >");
             }
@@ -181,7 +174,6 @@ private:
             window.draw(valueText);
         }
 
-        // Инструкции
         sf::Text instructions;
         instructions.setFont(font);
         instructions.setString("UP/DOWN: Select   LEFT/RIGHT: Change   R: Random Seed\nSPACE: Start Game");

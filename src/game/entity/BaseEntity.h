@@ -10,9 +10,6 @@ namespace GameLogic {
         protected: 
             sf::Color color;
             std::string name;
-            // std::vector<Troop*> troops;
-            // std::vector<Item*> items;
-            // std::vector<Building*> buildings;
             int items;
             std::vector<std::unique_ptr<Troop>> troops;
             std::vector<std::unique_ptr<Building>> buildings;
@@ -66,17 +63,6 @@ namespace GameLogic {
             void addBuilding(std::unique_ptr<Building> building) {
                 buildings.push_back(std::move(building));
             }
-
-            // void removeTroop(Troop* troopToRemove) {
-            //     auto it = std::find_if(troops.begin(), troops.end(),
-            //             [troopToRemove](const std::unique_ptr<Troop>& troop) {
-            //             return troop.get() == troopToRemove;
-            //             });
-            //
-            //     if (it != troops.end()) {
-            //         troops.erase(it);
-            //     }
-            // }
 
     };
 }; // namespace GameLogic

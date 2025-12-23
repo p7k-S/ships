@@ -63,7 +63,6 @@ namespace GameLogic {
             }
         }
 
-        // Дополнительные методы для удобства
         void addGold(uint16_t amount) { 
             if (gold + amount <= maxGold) {
                 gold += amount;
@@ -84,45 +83,6 @@ namespace GameLogic {
         virtual bool isDestroyed() const override { return health == 0; }
 
         virtual void lostResources(Troop* enemy) override;
-        // virtual void lostResources(Troop* enemy) override {
-        //     Hex* cell = getCell();
-        //
-        //     if (!enemy->hasItem() && !items.empty()) {
-        //         enemy->addItem(std::move(items.front()));
-        //         items.erase(items.begin());
-        //     }
-        //
-        //     while (!items.empty()) {
-        //         if (cell) {
-        //             cell->addItem(std::move(items.front()));
-        //         }
-        //         items.erase(items.begin());
-        //     }
-        // }
-
-
-        // virtual void lostResources(Port* enemy) override {
-        //     Port* enemy_port = static_cast<Port*>(enemy);
-        //
-        //     if (enemy_port->isDestroyed()) {
-        //         uint16_t enemyGold = enemy_port->getGold();
-        //         uint16_t availableSpace = getMaxGold() - getGold();
-        //         uint16_t transferableGold = std::min(enemyGold, availableSpace);
-        //
-        //         // Забираем сколько влезает
-        //         enemy_port->loseGold(transferableGold);
-        //         takeGold(transferableGold);
-        //
-        //         // Остальное высыпаем на клетку
-        //         uint16_t remainingGold = enemy_port->getGold();
-        //         Hex* targetCell = enemy_port->getCell();
-        //         if (remainingGold > 0) {
-        //             addGoldToCell(targetCell, remainingGold);
-        //             enemy_port->loseGold(remainingGold);
-        //         }
-        //     }
-        // }
-
 
         void healing() { 
             if (health + heal <= maxHealth) {
@@ -141,12 +101,6 @@ namespace GameLogic {
             return static_cast<float>(health) / static_cast<float>(maxHealth); 
         }
 
-        // Методы для работы с сокровищами
-        // bool addTreasure() { 
-        //     // playerу добавить
-        // }
-
-        // Метод для уменьшения счетчика спавна
         bool decrementSpawnRate() { 
             if (spawnRate > 0) {
                 spawnRate--;

@@ -16,14 +16,3 @@ inline sf::ConvexShape createHex(double x, double y, double radius) {
     }
     return hex;
 }
-
-// void renderRangeHex(gl::Hex* hex, sf::Color fillColor, sf::Color outlineColor) {
-//     double x_pos = hex->q * hexRadius * 1.5;
-//     double y_pos = hex->r * hexRadius * sqrt(3) + (hex->q % 2) * hexRadius * sqrt(3) / 2.0;
-//
-//     sf::ConvexShape rangeShape = createHex(x_pos + 50, y_pos + 50, hexRadius - 1);
-//     rangeShape.setFillColor(fillColor);
-//     rangeShape.setOutlineColor(outlineColor);
-//     rangeShape.setOutlineThickness(1);
-//     window.draw(rangeShape);
-// }

@@ -5,21 +5,17 @@ namespace GameLogic
 {
     bool isEnemy(std::variant<Player*, Enemy*, Pirate*> p1, 
             std::variant<Player*, Enemy*, Pirate*> p2) {
-        // Один и тот же объект
         if (p1 == p2) return false;
 
         // Разные типы
         if (p1.index() != p2.index()) return true;
 
-        // Оба Player
         if (auto* player1 = std::get_if<Player*>(&p1)) {
             if (auto* player2 = std::get_if<Player*>(&p2)) {
-                // Проверяем взаимную дружбу
                 return !areFriends(*player1, *player2);
             }
         }
 
-        // Все остальные случаи - враги
         return true;
     }
 

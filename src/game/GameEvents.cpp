@@ -1,7 +1,5 @@
 #include "Game.h"
-// #include "../render/Colors.hpp"
 #include "GameConfig.h"
-// #include <iostream>
 
 void Game::handleMouseButtonPressed(const sf::Event& event) {
     if (event.mouseButton.button != sf::Mouse::Left)
@@ -9,7 +7,6 @@ void Game::handleMouseButtonPressed(const sf::Event& event) {
 
     sf::Vector2i pixelPos(event.mouseButton.x, event.mouseButton.y);
 
-    // UI координаты — ТОЛЬКО defaultView
     sf::Vector2f uiMousePos = window.mapPixelToCoords(pixelPos, defaultView);
 
     if (isUIAreaClicked(uiMousePos)) {
@@ -32,33 +29,26 @@ void Game::handleMouseButtonPressed(const sf::Event& event) {
 
 
 void Game::handleMouseWheel(const sf::Event& event) {
-    // Получаем положение курсора в окне
     sf::Vector2i pixelPos = sf::Mouse::getPosition(window);
 
-    // Преобразуем его в мировые координаты ДО масштабирования
     sf::Vector2f beforeZoom = window.mapPixelToCoords(pixelPos, view);
 
-    // Применяем масштаб
     float zoomFactor = (event.mouseWheelScroll.delta > 0) ? 0.9f : 1.1f;
     view.zoom(zoomFactor);
 
-    // Преобразуем координаты курсора снова, уже после масштабирования
     sf::Vector2f afterZoom = window.mapPixelToCoords(pixelPos, view);
 
-    // Сдвигаем вид так, чтобы точка под курсором осталась на месте
     sf::Vector2f offset = beforeZoom - afterZoom;
     view.move(offset);
 
-    // Применяем изменённый вид
     window.setView(view);
 }
 
 void Game::handleMouseMove(const sf::Event& event) {
     if (isDragging) {
-        // ВСЕГДА явно указываем view камеры
         sf::Vector2f currentMousePos = window.mapPixelToCoords(
             sf::Vector2i(event.mouseMove.x, event.mouseMove.y), 
-            view  // ← ЯВНО указываем view камеры
+            view
         );
         
         sf::Vector2f delta = lastMousePos - currentMousePos;
@@ -66,10 +56,9 @@ void Game::handleMouseMove(const sf::Event& event) {
 
         window.setView(view);
         
-        // Обновляем lastMousePos с ТЕМ ЖЕ view
         lastMousePos = window.mapPixelToCoords(
             sf::Vector2i(event.mouseMove.x, event.mouseMove.y), 
-            view  // ← ЯВНО указываем view камеры
+            view
         );
     }
 }
@@ -114,28 +103,17 @@ void Game::processEvents() {
 }
 
 void Game::handleWindowResize(const sf::Event& event) {
-    // Получаем новую ширину и высоту окна
     float newWidth = static_cast<float>(event.size.width);
     float newHeight = static_cast<float>(event.size.height);
     
-    // Обновляем размер viewport'а для камеры (игрового мира)
-    // Сохраняем текущий центр камеры
     sf::Vector2f oldCenter = view.getCenter();
     
-    // Устанавливаем новый размер viewport'а
-    // sf::FloatRect(0, 0, 1, 1) означает, что view занимает всё окно
     view.setViewport(sf::FloatRect(0.f, 0.f, 1.f, 1.f));
-    
-    // Устанавливаем размер view равным размеру окна
     view.setSize(newWidth, newHeight);
-    
-    // Восстанавливаем центр камеры
     view.setCenter(oldCenter);
     
-    // Обновляем defaultView (для UI)
     defaultView = sf::View(sf::FloatRect(0.f, 0.f, newWidth, newHeight));
     
-    // Применяем обновлённый вид камеры
     window.setView(view);
 }
 
@@ -151,7 +129,7 @@ void Game::handleKeyPressed(const sf::Event& event) {
         fullscreenMapMode = !fullscreenMapMode;
     }
     if (event.key.code == sf::Keyboard::G) {
-        if (!isNetworkGame && !changeTurnLocal && playersAmount > 1) {
+        if (!changeTurnLocal && playersAmount > 1) {
             changeTurnLocal = true;
             nextTurn();
         } if (playersAmount == 1) {

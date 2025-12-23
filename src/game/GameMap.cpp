@@ -30,16 +30,12 @@ void Game::distributeCellTypes() {
 
         if (value <= deepWater) {
             type = gl::CellType::DEEPWATER;
-            // deepWaterHexes.push_back(&hex);
         } else if (value <= water) {
             type = gl::CellType::WATER;
-            // waterHexes.push_back(&hex);
         } else if (value <= land) {
             type = gl::CellType::LAND;
-            // landHexes.push_back(&hex);
         } else {
             type = gl::CellType::FOREST;
-            // forestHexes.push_back(&hex);
         }
 
         hex.setCellType(type);
@@ -47,11 +43,6 @@ void Game::distributeCellTypes() {
 }
 
 void Game::createPlayers() {
-    if (isNetworkGame) {
-        std::cout << "Network game: players created via network" << std::endl;
-        return;
-    }
-    
     for (uint8_t i = 0; i < playersAmount; ++i) {
         std::string name, color;
         std::cout << "Enter name for player " << i + 1 << ": ";
@@ -76,13 +67,12 @@ bool Game::portCanPlayced(const gl::Hex& h) {
         int q = neighborHex.q;
         int r = neighborHex.r;
 
-        // Проверяем границы
         if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
             int index = q + r * mapWidth;
             if (index >= 0 && index < hexMap.size()) {
                 if (hexMap[index].getCellType() == gl::CellType::LAND) {
                     hasLandNeighbor = true;
-                    break; // Достаточно одного соседа с LAND
+                    break;
                 }
             }
         }
@@ -101,7 +91,6 @@ bool Game::placeShip(const gl::Hex& portCell) {
             for (int q = portCell.q - dist; q <= portCell.q + dist && !found; q++) {
                 if (q == portCell.q && r == portCell.r) continue;
 
-                // Быстрая проверка - если оба смещения меньше dist, это внутренняя клетка
                 if (abs(q - portCell.q) < dist && abs(r - portCell.r) < dist) continue;
 
                 if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
@@ -143,7 +132,6 @@ bool Game::placeSoldier(const gl::Hex& portCell) {
             for (int q = portCell.q - dist; q <= portCell.q + dist && !found; q++) {
                 if (q == portCell.q && r == portCell.r) continue;
 
-                // Быстрая проверка - если оба смещения меньше dist, это внутренняя клетка
                 if (abs(q - portCell.q) < dist && abs(r - portCell.r) < dist) continue;
 
                 if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
@@ -196,11 +184,6 @@ void Game::createTroops() {
             std::shuffle(sectors[i].begin(), sectors[i].end(), g);
             gl::Hex* selectedHex = sectors[i][0];
 
-            std::cout << "DEBUG: Creating port for player " << i 
-                << " at (" << selectedHex->q << "," << selectedHex->r << ")" << std::endl;
-            std::cout << "DEBUG: Hex already has building: " << selectedHex->hasBuilding() << std::endl;
-            std::cout << "DEBUG: Hex already has troop: " << selectedHex->hasTroop() << std::endl;
-
             gl::Owner owner = players[i].get();
             auto port = std::make_unique<gl::Port>(owner, selectedHex);
             gl::Port* portPtr = port.get();
@@ -210,13 +193,11 @@ void Game::createTroops() {
                 int q = neighborHex.q;
                 int r = neighborHex.r;
 
-                // Проверяем границы как в portCanPlayced
                 if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
                     int index = q + r * mapWidth;
                     if (index >= 0 && index < hexMap.size() && 
                             hexMap[index].getCellType() == gl::CellType::LAND) {
 
-                        // Размещаем Soldier на ЗЕМЛЕ, а не на воде!
                         auto soldier = std::make_unique<gl::Soldier>(owner, &hexMap[index]);
                         gl::Soldier* soldierPtr = soldier.get();
 
@@ -241,28 +222,21 @@ void Game::createTroops() {
 
                 if (selectedHex->setTroopOf<gl::Ship>(shipPtr)) {
                     players[i]->addTroop(std::move(ship));
-                    std::cout << "DEBUG: Player " << i << " now has " << players[i]->getTroops().size() << " troops" << std::endl;
 
                     addViewedCells(players[i]->getSeenCells(), shipPtr, hexMap, gl::RangeMode::VIEW);
                     addViewedCells(players[i]->getViewableCells(), shipPtr, hexMap, gl::RangeMode::VIEW);
                 }
 
                 sectors[i].erase(sectors[i].begin());
-            } else {
-                std::cout << "DEBUG: FAILED to create port for player " << i << std::endl;
             }
-        } else {
-            std::cout << "DEBUG: No cells for player " << i << std::endl;
         }
     }
 
-    // 1. СОБИРАЕМ все оставшиеся клетки из sectors
     std::vector<gl::Hex*> remainingCells;
     for (auto& sector : sectors) {
         remainingCells.insert(remainingCells.end(), sector.begin(), sector.end());
     }
 
-    // 2. ВЫЧИСЛЯЕМ количество секторов для NPC
     size_t npcSectorCount = static_cast<size_t>(remainingCells.size() * percent_ships_in_water);
     npcSectorCount = std::max(size_t(1), std::min(npcSectorCount, remainingCells.size()));
 
@@ -285,13 +259,11 @@ void Game::createTroops() {
                 int q = neighborHex.q;
                 int r = neighborHex.r;
 
-                // Проверяем границы как в portCanPlayced
                 if (q >= 0 && q < mapWidth && r >= 0 && r < mapHeight) {
                     int index = q + r * mapWidth;
                     if (index >= 0 && index < hexMap.size() && 
                             hexMap[index].getCellType() == gl::CellType::LAND) {
 
-                        // Размещаем Soldier на ЗЕМЛЕ, а не на воде!
                         auto soldier = std::make_unique<gl::Soldier>(owner, &hexMap[index]);
                         gl::Soldier* soldierPtr = soldier.get();
 

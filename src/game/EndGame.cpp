@@ -2,11 +2,9 @@
 #include "../textures/EmbeddedResources.h"
 
 void Game::renderVictoryScreen(uint8_t winnerId) {
-    // Сохраняем текущее состояние
     sf::View originalView = window.getView();
     window.setView(window.getDefaultView());
     
-    // Фон с затемнением
     window.clear(sf::Color(10, 10, 20, 230));
     
     sf::Vector2u windowSize = window.getSize();
@@ -19,7 +17,6 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     banner.setOutlineColor(sf::Color(255, 215, 0));
     window.draw(banner);
     
-    // Текст "ПОБЕДА!"
     sf::Text victoryText;
     victoryText.setFont(EmbeddedResources::main_font);
     victoryText.setString("VICTORY!");
@@ -40,7 +37,6 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     window.draw(victoryShadow);
     window.draw(victoryText);
     
-    // Имя победителя
     sf::Text winnerText;
     winnerText.setFont(EmbeddedResources::main_font);
     winnerText.setString("Winner: " + players[winnerId]->getName());
@@ -62,7 +58,6 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     table.setOutlineColor(sf::Color(60, 60, 80));
     window.draw(table);
     
-    // Заголовок таблицы
     sf::Text tableTitle;
     tableTitle.setFont(EmbeddedResources::main_font);
     tableTitle.setString("FINAL RESULTS");
@@ -82,21 +77,19 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     float rowHeight = 35;
     
     for (uint8_t i = 0; i < playersAmount; ++i) {
-        // Фон строки (альтернирующие цвета)
         sf::RectangleShape rowBg(sf::Vector2f(table.getSize().x - 20, rowHeight - 5));
         rowBg.setPosition(table.getPosition().x + 10, startY + i * rowHeight);
         
         if (i == winnerId) {
-            rowBg.setFillColor(sf::Color(50, 70, 40, 180)); // Зеленый для победителя
+            rowBg.setFillColor(sf::Color(50, 70, 40, 180));
         } else if (players[i]->isDead()) {
-            rowBg.setFillColor(sf::Color(70, 30, 30, 180)); // Красный для проигравших
+            rowBg.setFillColor(sf::Color(70, 30, 30, 180));
         } else {
             rowBg.setFillColor(i % 2 == 0 ? sf::Color(40, 40, 55, 150) : sf::Color(45, 45, 60, 150));
         }
         
         window.draw(rowBg);
         
-        // Данные игрока
         std::string playerStatus = players[i]->isDead() ? "ELIMINATED" : "ALIVE";
         std::string stats = players[i]->getName() + 
                           " | Troops: " + std::to_string(players[i]->getTroops().size()) +
@@ -155,7 +148,6 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
 void Game::drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId) {
     sf::Vector2u size = window.getSize();
     
-    // Победные лучи от баннера
     static sf::Clock animClock;
     float time = animClock.getElapsedTime().asSeconds();
     
@@ -178,7 +170,7 @@ void Game::drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId) {
         window.draw(ray);
     }
     
-    // Корона над именем победителя
+    // Корона
     sf::ConvexShape crown;
     crown.setPointCount(7);
     crown.setPoint(0, sf::Vector2f(0, 20));
@@ -202,7 +194,6 @@ void Game::showVictoryScreen(uint8_t winnerId) {
     sf::Clock frameClock;
     
     while (window.isOpen() && victoryScreenActive) {
-        // Обработка событий
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -210,21 +201,17 @@ void Game::showVictoryScreen(uint8_t winnerId) {
                 return;
             }
             else if (event.type == sf::Event::KeyPressed) {
-                // Любая клавиша закрывает экран победы
                 victoryScreenActive = false;
                 return;
             }
             else if (event.type == sf::Event::MouseButtonPressed) {
-                // Клик мышью также закрывает экран победы
                 victoryScreenActive = false;
                 return;
             }
         }
         
-        // Рендерим экран победы
         renderVictoryScreen(winnerId);
         
-        // Ограничиваем FPS для плавной анимации
         sf::Time frameTime = frameClock.restart();
         if (frameTime < sf::milliseconds(16)) {
             sf::sleep(sf::milliseconds(16) - frameTime);
@@ -236,12 +223,10 @@ void Game::renderLoseScreen() {
     sf::View originalView = window.getView();
     window.setView(window.getDefaultView());
     
-    // Фон с затемнением
     window.clear(sf::Color(30, 10, 10, 230));
     
     sf::Vector2u windowSize = window.getSize();
     
-    // Баннер поражения
     sf::RectangleShape banner(sf::Vector2f(windowSize.x * 0.8f, 250));
     banner.setPosition(windowSize.x * 0.1f, windowSize.y * 0.2f);
     banner.setFillColor(sf::Color(60, 30, 30, 240));
@@ -249,7 +234,6 @@ void Game::renderLoseScreen() {
     banner.setOutlineColor(sf::Color(180, 50, 50));
     window.draw(banner);
     
-    // Текст "ПОРАЖЕНИЕ"
     sf::Text loseText;
     loseText.setFont(EmbeddedResources::main_font);
     loseText.setString("DEFEAT");
@@ -262,7 +246,6 @@ void Game::renderLoseScreen() {
                       loseBounds.top + loseBounds.height / 2.0f);
     loseText.setPosition(windowSize.x / 2.0f, banner.getPosition().y + 80);
     
-    // Тень
     sf::Text loseShadow = loseText;
     loseShadow.setFillColor(sf::Color(0, 0, 0, 150));
     loseShadow.setPosition(loseText.getPosition().x + 4, loseText.getPosition().y + 4);
@@ -270,7 +253,6 @@ void Game::renderLoseScreen() {
     window.draw(loseShadow);
     window.draw(loseText);
     
-    // Сообщение
     sf::Text messageText;
     messageText.setFont(EmbeddedResources::main_font);
     messageText.setString("You were defeated by the bots");
@@ -284,7 +266,6 @@ void Game::renderLoseScreen() {
     
     window.draw(messageText);
     
-    // Статистика игры
     sf::Text statsText;
     statsText.setFont(EmbeddedResources::main_font);
     statsText.setString("Turns survived: " + std::to_string(totalTurnCount));
@@ -298,7 +279,6 @@ void Game::renderLoseScreen() {
     
     window.draw(statsText);
     
-    // Мерцающая подсказка внизу
     static sf::Clock hintClock;
     float hintAlpha = 128 + 127 * sin(hintClock.getElapsedTime().asSeconds() * 2);
     
@@ -323,7 +303,6 @@ void Game::showLoseScreen() {
     sf::Clock frameClock;
     
     while (window.isOpen() && loseScreenActive) {
-        // Обработка событий
         sf::Event event;
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed) {
@@ -331,21 +310,17 @@ void Game::showLoseScreen() {
                 return;
             }
             else if (event.type == sf::Event::KeyPressed) {
-                // Любая клавиша закрывает экран поражения
                 loseScreenActive = false;
                 return;
             }
             else if (event.type == sf::Event::MouseButtonPressed) {
-                // Клик мышью также закрывает экран поражения
                 loseScreenActive = false;
                 return;
             }
         }
         
-        // Рендерим экран поражения
         renderLoseScreen();
         
-        // Ограничиваем FPS для плавной анимации
         sf::Time frameTime = frameClock.restart();
         if (frameTime < sf::milliseconds(16)) {
             sf::sleep(sf::milliseconds(16) - frameTime);
