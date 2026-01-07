@@ -12,7 +12,7 @@
 1. Скачайте последний релиз из раздела **[Releases](https://github.com/p7k-S/ships/releases)**.
 2. Запустите игру из терминала:
    ```bash
-   ./Battleship
+   ./GameProject
    ```
 
 ### Зависимости
