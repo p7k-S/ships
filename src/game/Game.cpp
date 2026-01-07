@@ -1,6 +1,4 @@
 #include "Game.h"
-#include <cstring>
-#include <cstdlib>
 
 void Game::run() {
     if (!startMenu()) return;

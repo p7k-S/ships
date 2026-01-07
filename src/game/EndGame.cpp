@@ -2,12 +2,14 @@
 #include "../textures/EmbeddedResources.h"
 
 void Game::renderVictoryScreen(uint8_t winnerId) {
-    sf::View originalView = window.getView();
+    // Используем default view и обновляем его на основе текущего размера окна
     window.setView(window.getDefaultView());
     
-    window.clear(sf::Color(10, 10, 20, 230));
+    sf::Vector2f windowSize(window.getSize());
+    sf::View defaultView(sf::FloatRect(0, 0, windowSize.x, windowSize.y));
+    window.setView(defaultView);
     
-    sf::Vector2u windowSize = window.getSize();
+    window.clear(sf::Color(10, 10, 20, 230));
     
     // Победный баннер
     sf::RectangleShape banner(sf::Vector2f(windowSize.x * 0.8f, 300));
@@ -20,19 +22,20 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     sf::Text victoryText;
     victoryText.setFont(EmbeddedResources::main_font);
     victoryText.setString("VICTORY!");
-    victoryText.setCharacterSize(72);
+    victoryText.setCharacterSize(static_cast<unsigned int>(72 * (windowSize.y / 1080.0f))); // Масштабируем относительно 1080p
     victoryText.setFillColor(sf::Color(255, 215, 0));
     victoryText.setStyle(sf::Text::Bold);
     
     sf::FloatRect victoryBounds = victoryText.getLocalBounds();
     victoryText.setOrigin(victoryBounds.left + victoryBounds.width / 2.0f,
                          victoryBounds.top + victoryBounds.height / 2.0f);
-    victoryText.setPosition(windowSize.x / 2.0f, banner.getPosition().y + 80);
+    victoryText.setPosition(windowSize.x / 2.0f, banner.getPosition().y + 80 * (windowSize.y / 1080.0f));
     
     // Тень
     sf::Text victoryShadow = victoryText;
     victoryShadow.setFillColor(sf::Color(0, 0, 0, 150));
-    victoryShadow.setPosition(victoryText.getPosition().x + 4, victoryText.getPosition().y + 4);
+    victoryShadow.setPosition(victoryText.getPosition().x + 4 * (windowSize.x / 1920.0f), 
+                             victoryText.getPosition().y + 4 * (windowSize.y / 1080.0f));
     
     window.draw(victoryShadow);
     window.draw(victoryText);
@@ -40,19 +43,19 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     sf::Text winnerText;
     winnerText.setFont(EmbeddedResources::main_font);
     winnerText.setString("Winner: " + players[winnerId]->getName());
-    winnerText.setCharacterSize(36);
+    winnerText.setCharacterSize(static_cast<unsigned int>(36 * (windowSize.y / 1080.0f)));
     winnerText.setFillColor(sf::Color(255, 255, 255));
     
     sf::FloatRect winnerBounds = winnerText.getLocalBounds();
     winnerText.setOrigin(winnerBounds.left + winnerBounds.width / 2.0f,
                         winnerBounds.top + winnerBounds.height / 2.0f);
-    winnerText.setPosition(windowSize.x / 2.0f, victoryText.getPosition().y + 100);
+    winnerText.setPosition(windowSize.x / 2.0f, victoryText.getPosition().y + 100 * (windowSize.y / 1080.0f));
     
     window.draw(winnerText);
     
     // Таблица результатов
-    sf::RectangleShape table(sf::Vector2f(windowSize.x * 0.7f, 250));
-    table.setPosition(windowSize.x * 0.15f, banner.getPosition().y + banner.getSize().y + 40);
+    sf::RectangleShape table(sf::Vector2f(windowSize.x * 0.7f, 250 * (windowSize.y / 1080.0f)));
+    table.setPosition(windowSize.x * 0.15f, banner.getPosition().y + banner.getSize().y + 40 * (windowSize.y / 1080.0f));
     table.setFillColor(sf::Color(30, 30, 45, 220));
     table.setOutlineThickness(3);
     table.setOutlineColor(sf::Color(60, 60, 80));
@@ -61,24 +64,26 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     sf::Text tableTitle;
     tableTitle.setFont(EmbeddedResources::main_font);
     tableTitle.setString("FINAL RESULTS");
-    tableTitle.setCharacterSize(28);
+    tableTitle.setCharacterSize(static_cast<unsigned int>(28 * (windowSize.y / 1080.0f)));
     tableTitle.setFillColor(sf::Color(200, 200, 255));
     tableTitle.setStyle(sf::Text::Bold);
     
     sf::FloatRect titleBounds = tableTitle.getLocalBounds();
     tableTitle.setOrigin(titleBounds.left + titleBounds.width / 2.0f,
                         titleBounds.top + titleBounds.height / 2.0f);
-    tableTitle.setPosition(windowSize.x / 2.0f, table.getPosition().y + 25);
+    tableTitle.setPosition(windowSize.x / 2.0f, table.getPosition().y + 25 * (windowSize.y / 1080.0f));
     
     window.draw(tableTitle);
     
     // Отображаем всех игроков в таблице
-    float startY = table.getPosition().y + 70;
-    float rowHeight = 35;
+    float startY = table.getPosition().y + 70 * (windowSize.y / 1080.0f);
+    float rowHeight = 35 * (windowSize.y / 1080.0f);
     
     for (uint8_t i = 0; i < playersAmount; ++i) {
-        sf::RectangleShape rowBg(sf::Vector2f(table.getSize().x - 20, rowHeight - 5));
-        rowBg.setPosition(table.getPosition().x + 10, startY + i * rowHeight);
+        sf::RectangleShape rowBg(sf::Vector2f(table.getSize().x - 20 * (windowSize.x / 1920.0f), 
+                                            rowHeight - 5 * (windowSize.y / 1080.0f)));
+        rowBg.setPosition(table.getPosition().x + 10 * (windowSize.x / 1920.0f), 
+                         startY + i * rowHeight);
         
         if (i == winnerId) {
             rowBg.setFillColor(sf::Color(50, 70, 40, 180));
@@ -99,19 +104,20 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
         sf::Text playerText;
         playerText.setFont(EmbeddedResources::main_font);
         playerText.setString(stats);
-        playerText.setCharacterSize(20);
+        playerText.setCharacterSize(static_cast<unsigned int>(20 * (windowSize.y / 1080.0f)));
         playerText.setFillColor(i == winnerId ? sf::Color(255, 255, 200) : 
                                players[i]->isDead() ? sf::Color(200, 150, 150) : 
                                sf::Color(200, 200, 220));
         
-        playerText.setPosition(table.getPosition().x + 20, startY + i * rowHeight);
+        playerText.setPosition(table.getPosition().x + 20 * (windowSize.x / 1920.0f), 
+                              startY + i * rowHeight);
         window.draw(playerText);
     }
     
     sf::Text gameInfo;
     gameInfo.setFont(EmbeddedResources::main_font);
     gameInfo.setString("Total turns: " + std::to_string(totalTurnCount));
-    gameInfo.setCharacterSize(24);
+    gameInfo.setCharacterSize(static_cast<unsigned int>(24 * (windowSize.y / 1080.0f)));
     gameInfo.setFillColor(sf::Color(180, 180, 220));
 
     // Вычисляем положение для центрирования
@@ -119,7 +125,7 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     gameInfo.setOrigin(gameInfoBounds.left + gameInfoBounds.width / 2.0f,
             gameInfoBounds.top + gameInfoBounds.height / 2.0f);
     gameInfo.setPosition(windowSize.x / 2.0f, 
-            table.getPosition().y + table.getSize().y + 30 + gameInfoBounds.height / 2.0f);
+            table.getPosition().y + table.getSize().y + 30 * (windowSize.y / 1080.0f));
 
     window.draw(gameInfo);
  
@@ -131,14 +137,14 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
     
     sf::Text hintText;
     hintText.setFont(EmbeddedResources::main_font);
-    hintText.setString("ALT + F4...");
-    hintText.setCharacterSize(20);
+    hintText.setString("Press any key to continue...");
+    hintText.setCharacterSize(static_cast<unsigned int>(20 * (windowSize.y / 1080.0f)));
     hintText.setFillColor(sf::Color(200, 200, 220, static_cast<sf::Uint8>(hintAlpha)));
     
     sf::FloatRect hintBounds = hintText.getLocalBounds();
     hintText.setOrigin(hintBounds.left + hintBounds.width / 2.0f,
                       hintBounds.top + hintBounds.height / 2.0f);
-    hintText.setPosition(windowSize.x / 2.0f, windowSize.y - 50);
+    hintText.setPosition(windowSize.x / 2.0f, windowSize.y - 50 * (windowSize.y / 1080.0f));
     
     window.draw(hintText);
     
@@ -146,7 +152,7 @@ void Game::renderVictoryScreen(uint8_t winnerId) {
 }
 
 void Game::drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId) {
-    sf::Vector2u size = window.getSize();
+    sf::Vector2f size(window.getSize());
     
     static sf::Clock animClock;
     float time = animClock.getElapsedTime().asSeconds();
@@ -157,14 +163,14 @@ void Game::drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId) {
     
     for (int i = 0; i < 8; ++i) {
         float angle = i * 45.0f + time * 20.0f;
-        float length = 100 + 50 * sin(time * 2 + i);
+        float length = 100 * (size.y / 1080.0f) + 50 * (size.y / 1080.0f) * sin(time * 2 + i);
         
-        ray.setPoint(0, sf::Vector2f(0, -5));
-        ray.setPoint(1, sf::Vector2f(length, -2));
-        ray.setPoint(2, sf::Vector2f(length, 2));
-        ray.setPoint(3, sf::Vector2f(0, 5));
+        ray.setPoint(0, sf::Vector2f(0, -5 * (size.y / 1080.0f)));
+        ray.setPoint(1, sf::Vector2f(length, -2 * (size.y / 1080.0f)));
+        ray.setPoint(2, sf::Vector2f(length, 2 * (size.y / 1080.0f)));
+        ray.setPoint(3, sf::Vector2f(0, 5 * (size.y / 1080.0f)));
         
-        ray.setPosition(size.x / 2.0f, 150);
+        ray.setPosition(size.x / 2.0f, 150 * (size.y / 1080.0f));
         ray.setRotation(angle);
         
         window.draw(ray);
@@ -173,18 +179,19 @@ void Game::drawVictoryDecorations(sf::RenderWindow& window, uint8_t winnerId) {
     // Корона
     sf::ConvexShape crown;
     crown.setPointCount(7);
-    crown.setPoint(0, sf::Vector2f(0, 20));
-    crown.setPoint(1, sf::Vector2f(10, 0));
-    crown.setPoint(2, sf::Vector2f(20, 20));
-    crown.setPoint(3, sf::Vector2f(30, 0));
-    crown.setPoint(4, sf::Vector2f(40, 20));
-    crown.setPoint(5, sf::Vector2f(20, 30));
-    crown.setPoint(6, sf::Vector2f(0, 20));
+    float crownScale = size.y / 1080.0f;
+    crown.setPoint(0, sf::Vector2f(0, 20 * crownScale));
+    crown.setPoint(1, sf::Vector2f(10 * crownScale, 0));
+    crown.setPoint(2, sf::Vector2f(20 * crownScale, 20 * crownScale));
+    crown.setPoint(3, sf::Vector2f(30 * crownScale, 0));
+    crown.setPoint(4, sf::Vector2f(40 * crownScale, 20 * crownScale));
+    crown.setPoint(5, sf::Vector2f(20 * crownScale, 30 * crownScale));
+    crown.setPoint(6, sf::Vector2f(0, 20 * crownScale));
     
     crown.setFillColor(sf::Color(255, 215, 0));
-    crown.setOutlineThickness(2);
+    crown.setOutlineThickness(2 * crownScale);
     crown.setOutlineColor(sf::Color(255, 255, 200));
-    crown.setPosition(size.x / 2.0f - 20, 180);
+    crown.setPosition(size.x / 2.0f - 20 * crownScale, 180 * crownScale);
     
     window.draw(crown);
 }
@@ -199,6 +206,11 @@ void Game::showVictoryScreen(uint8_t winnerId) {
             if (event.type == sf::Event::Closed) {
                 window.close();
                 return;
+            }
+            else if (event.type == sf::Event::Resized) {
+                // Обрабатываем изменение размера окна
+                sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+                window.setView(sf::View(visibleArea));
             }
             else if (event.type == sf::Event::KeyPressed) {
                 victoryScreenActive = false;
@@ -220,14 +232,16 @@ void Game::showVictoryScreen(uint8_t winnerId) {
 }
 
 void Game::renderLoseScreen() {
-    sf::View originalView = window.getView();
+    // Используем default view и обновляем его на основе текущего размера окна
     window.setView(window.getDefaultView());
+    
+    sf::Vector2f windowSize(window.getSize());
+    sf::View defaultView(sf::FloatRect(0, 0, windowSize.x, windowSize.y));
+    window.setView(defaultView);
     
     window.clear(sf::Color(30, 10, 10, 230));
     
-    sf::Vector2u windowSize = window.getSize();
-    
-    sf::RectangleShape banner(sf::Vector2f(windowSize.x * 0.8f, 250));
+    sf::RectangleShape banner(sf::Vector2f(windowSize.x * 0.8f, 250 * (windowSize.y / 1080.0f)));
     banner.setPosition(windowSize.x * 0.1f, windowSize.y * 0.2f);
     banner.setFillColor(sf::Color(60, 30, 30, 240));
     banner.setOutlineThickness(5);
@@ -237,18 +251,19 @@ void Game::renderLoseScreen() {
     sf::Text loseText;
     loseText.setFont(EmbeddedResources::main_font);
     loseText.setString("DEFEAT");
-    loseText.setCharacterSize(72);
+    loseText.setCharacterSize(static_cast<unsigned int>(72 * (windowSize.y / 1080.0f)));
     loseText.setFillColor(sf::Color(220, 80, 80));
     loseText.setStyle(sf::Text::Bold);
     
     sf::FloatRect loseBounds = loseText.getLocalBounds();
     loseText.setOrigin(loseBounds.left + loseBounds.width / 2.0f,
                       loseBounds.top + loseBounds.height / 2.0f);
-    loseText.setPosition(windowSize.x / 2.0f, banner.getPosition().y + 80);
+    loseText.setPosition(windowSize.x / 2.0f, banner.getPosition().y + 80 * (windowSize.y / 1080.0f));
     
     sf::Text loseShadow = loseText;
     loseShadow.setFillColor(sf::Color(0, 0, 0, 150));
-    loseShadow.setPosition(loseText.getPosition().x + 4, loseText.getPosition().y + 4);
+    loseShadow.setPosition(loseText.getPosition().x + 4 * (windowSize.x / 1920.0f), 
+                          loseText.getPosition().y + 4 * (windowSize.y / 1080.0f));
     
     window.draw(loseShadow);
     window.draw(loseText);
@@ -256,26 +271,26 @@ void Game::renderLoseScreen() {
     sf::Text messageText;
     messageText.setFont(EmbeddedResources::main_font);
     messageText.setString("You were defeated by the bots");
-    messageText.setCharacterSize(32);
+    messageText.setCharacterSize(static_cast<unsigned int>(32 * (windowSize.y / 1080.0f)));
     messageText.setFillColor(sf::Color(220, 180, 180));
     
     sf::FloatRect messageBounds = messageText.getLocalBounds();
     messageText.setOrigin(messageBounds.left + messageBounds.width / 2.0f,
                          messageBounds.top + messageBounds.height / 2.0f);
-    messageText.setPosition(windowSize.x / 2.0f, loseText.getPosition().y + 90);
+    messageText.setPosition(windowSize.x / 2.0f, loseText.getPosition().y + 90 * (windowSize.y / 1080.0f));
     
     window.draw(messageText);
     
     sf::Text statsText;
     statsText.setFont(EmbeddedResources::main_font);
     statsText.setString("Turns survived: " + std::to_string(totalTurnCount));
-    statsText.setCharacterSize(28);
+    statsText.setCharacterSize(static_cast<unsigned int>(28 * (windowSize.y / 1080.0f)));
     statsText.setFillColor(sf::Color(200, 150, 150));
     
     sf::FloatRect statsBounds = statsText.getLocalBounds();
     statsText.setOrigin(statsBounds.left + statsBounds.width / 2.0f,
                        statsBounds.top + statsBounds.height / 2.0f);
-    statsText.setPosition(windowSize.x / 2.0f, messageText.getPosition().y + 60);
+    statsText.setPosition(windowSize.x / 2.0f, messageText.getPosition().y + 60 * (windowSize.y / 1080.0f));
     
     window.draw(statsText);
     
@@ -285,13 +300,13 @@ void Game::renderLoseScreen() {
     sf::Text hintText;
     hintText.setFont(EmbeddedResources::main_font);
     hintText.setString("Press any key to continue...");
-    hintText.setCharacterSize(20);
+    hintText.setCharacterSize(static_cast<unsigned int>(20 * (windowSize.y / 1080.0f)));
     hintText.setFillColor(sf::Color(200, 150, 150, static_cast<sf::Uint8>(hintAlpha)));
     
     sf::FloatRect hintBounds = hintText.getLocalBounds();
     hintText.setOrigin(hintBounds.left + hintBounds.width / 2.0f,
                       hintBounds.top + hintBounds.height / 2.0f);
-    hintText.setPosition(windowSize.x / 2.0f, windowSize.y - 50);
+    hintText.setPosition(windowSize.x / 2.0f, windowSize.y - 50 * (windowSize.y / 1080.0f));
     
     window.draw(hintText);
     
@@ -308,6 +323,11 @@ void Game::showLoseScreen() {
             if (event.type == sf::Event::Closed) {
                 window.close();
                 return;
+            }
+            else if (event.type == sf::Event::Resized) {
+                // Обрабатываем изменение размера окна
+                sf::FloatRect visibleArea(0, 0, event.size.width, event.size.height);
+                window.setView(sf::View(visibleArea));
             }
             else if (event.type == sf::Event::KeyPressed) {
                 loseScreenActive = false;

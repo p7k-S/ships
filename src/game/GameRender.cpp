@@ -530,19 +530,22 @@ void Game::render() {
 }
 
 void Game::renderWaitMove() {
-    window.setView(window.getDefaultView());
-    window.clear(sf::Color(15, 15, 25));
+    // Устанавливаем view на основе текущих размеров окна
+    sf::Vector2f windowSize(window.getSize());
+    sf::View defaultView(sf::FloatRect(0, 0, windowSize.x, windowSize.y));
+    window.setView(defaultView);
     
-    sf::Vector2u windowSize = window.getSize();
+    window.clear(sf::Color(15, 15, 25));
     
     sf::RectangleShape background(sf::Vector2f(windowSize.x, windowSize.y));
     background.setFillColor(sf::Color(25, 25, 40, 230));
     window.draw(background);
     
-    sf::RectangleShape textArea(sf::Vector2f(windowSize.x * 0.7f, 200));
+    // Область текста с масштабированием
+    sf::RectangleShape textArea(sf::Vector2f(windowSize.x * 0.7f, 200 * (windowSize.y / 1080.0f)));
     textArea.setPosition(windowSize.x * 0.15f, windowSize.y * 0.4f);
     textArea.setFillColor(sf::Color(40, 40, 60, 200));
-    textArea.setOutlineThickness(3);
+    textArea.setOutlineThickness(3 * (windowSize.x / 1920.0f));
     textArea.setOutlineColor(sf::Color(70, 70, 100));
     window.draw(textArea);
     
@@ -553,9 +556,16 @@ void Game::renderWaitMove() {
     displayText += "Press SPACE to continue";
     text.setString(displayText);
     
+    // Масштабируемый размер шрифта
+    unsigned int fontSize = static_cast<unsigned int>(48 * (windowSize.y / 1080.0f));
+    fontSize = std::max(fontSize, 24u); // Минимальный размер
+    fontSize = std::min(fontSize, 72u); // Максимальный размер
+    text.setCharacterSize(fontSize);
+    
     text.setFillColor(sf::Color(255, 215, 0));
     text.setStyle(sf::Text::Bold);
     
+    // Центрирование текста в области
     sf::FloatRect textBounds = text.getLocalBounds();
     text.setOrigin(textBounds.left + textBounds.width / 2.0f,
                    textBounds.top + textBounds.height / 2.0f);
@@ -564,24 +574,32 @@ void Game::renderWaitMove() {
 
     sf::Text shadow = text;
     shadow.setFillColor(sf::Color(0, 0, 0, 150));
-    shadow.setPosition(text.getPosition().x + 3, text.getPosition().y + 3);
+    shadow.setPosition(text.getPosition().x + 3 * (windowSize.x / 1920.0f), 
+                       text.getPosition().y + 3 * (windowSize.y / 1080.0f));
     
     window.draw(shadow);
     window.draw(text);
     
+    // Мерцающая подсказка
     static sf::Clock blinkClock;
     float blinkTime = blinkClock.getElapsedTime().asSeconds();
     if (static_cast<int>(blinkTime * 2) % 2 == 0) {
         sf::Text hintText;
         hintText.setFont(EmbeddedResources::main_font);
         hintText.setString("^^^^^");
-        hintText.setCharacterSize(24);
+        
+        // Масштабируемый размер подсказки
+        unsigned int hintFontSize = static_cast<unsigned int>(24 * (windowSize.y / 1080.0f));
+        hintFontSize = std::max(hintFontSize, 16u);
+        hintText.setCharacterSize(hintFontSize);
+        
         hintText.setFillColor(sf::Color(150, 150, 255, 200));
         
         sf::FloatRect hintBounds = hintText.getLocalBounds();
         hintText.setOrigin(hintBounds.left + hintBounds.width / 2.0f, 0);
         hintText.setPosition(windowSize.x / 2.0f, 
-                           textArea.getPosition().y + textArea.getSize().y + 20);
+                           textArea.getPosition().y + textArea.getSize().y + 
+                           20 * (windowSize.y / 1080.0f));
         
         window.draw(hintText);
     }
@@ -592,22 +610,32 @@ void Game::renderWaitMove() {
 }
 
 void Game::drawCornerDecorations(sf::RenderWindow& window) {
-    sf::Vector2u size = window.getSize();
-    sf::RectangleShape corner(sf::Vector2f(30, 30));
+    sf::Vector2f size(window.getSize());
+    
+    // Масштабируемые угловые элементы
+    float cornerSize = 30 * (std::min(size.x, size.y) / 1080.0f);
+    float cornerOffset = 20 * (std::min(size.x, size.y) / 1080.0f);
+    float outlineThickness = 2 * (std::min(size.x, size.y) / 1080.0f);
+    
+    sf::RectangleShape corner(sf::Vector2f(cornerSize, cornerSize));
     corner.setFillColor(sf::Color::Transparent);
-    corner.setOutlineThickness(2);
+    corner.setOutlineThickness(outlineThickness);
     corner.setOutlineColor(sf::Color(100, 100, 150, 100));
     
-    corner.setPosition(20, 20);
+    // Левый верхний угол
+    corner.setPosition(cornerOffset, cornerOffset);
     window.draw(corner);
     
-    corner.setPosition(size.x - 50, 20);
+    // Правый верхний угол
+    corner.setPosition(size.x - cornerSize - cornerOffset, cornerOffset);
     window.draw(corner);
     
-    corner.setPosition(20, size.y - 50);
+    // Левый нижний угол
+    corner.setPosition(cornerOffset, size.y - cornerSize - cornerOffset);
     window.draw(corner);
 
-    corner.setPosition(size.x - 50, size.y - 50);
+    // Правый нижний угол
+    corner.setPosition(size.x - cornerSize - cornerOffset, size.y - cornerSize - cornerOffset);
     window.draw(corner);
 }
 
