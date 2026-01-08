@@ -37,16 +37,15 @@ sudo apt install cmake build-essential libsfml-dev
 ```
 
 ## 🚀 Инструкция по сборке
-
-    ```bash
-    git clone https://github.com/p7k-S/ships.git
-    cd ships
-    mkdir build && cd build
-    cmake ..
-    make -j$(nproc)
-    
-    ./GameProject
-    ```
+ ```bash
+ git clone https://github.com/p7k-S/ships.git
+ cd ships
+ mkdir build && cd build
+ cmake ..
+ make -j$(nproc)
+ 
+ ./GameProject
+ ```
 
 ## 🎮 Основные правила
 
