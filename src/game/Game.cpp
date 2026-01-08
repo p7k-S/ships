@@ -1,13 +1,16 @@
 #include "Game.h"
 
 void Game::run() {
-    if (!startMenu()) return;
+    window.setFramerateLimit(60);
 
-    if (!initialize()) return;
+    if (!startMenu()) return;
 
     if (players.empty()) {
         createPlayers();
     }
+
+    if (!initialize()) return;
+
     createTroops();
 
     while (window.isOpen()) {
@@ -30,9 +33,12 @@ void Game::run() {
                 renderWaitMove();
             }
             else {
-                render();
+                if (Rerender)
+                    render();
+                Rerender = false;
             }
         }
+        sf::sleep(sf::milliseconds(1));
     }
 }
 

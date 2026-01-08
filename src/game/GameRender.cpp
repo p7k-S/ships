@@ -421,6 +421,7 @@ void Game::handleTroopUpgrade(const TroopUpgradeButton& upgradeButton) {
             } else {
                 troop->setView(troop->getView()+1);
                 addViewedCells(players[p_id]->getSeenCells(), troop, hexMap, gl::RangeMode::VIEW);
+                updateVisibleCells();
             }
             break;
             
@@ -518,7 +519,6 @@ void Game::render() {
 
     window.setView(view);
     
-    updateVisibleCells();
     renderMap();
     renderShipRange();
     renderUnitBars();

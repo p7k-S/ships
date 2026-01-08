@@ -72,27 +72,33 @@ void Game::processEvents() {
                 break;
 
             case sf::Event::Resized:
+                Rerender = true;
                 handleWindowResize(event);
                 break;
 
             case sf::Event::KeyPressed:
+                Rerender = true;
                 handleKeyPressed(event);
                 break;
 
             case sf::Event::MouseButtonPressed:
+                Rerender = true;
                 handleMouseButtonPressed(event);
                 break;
 
             case sf::Event::MouseButtonReleased:
+                Rerender = true;
                 if (event.mouseButton.button == sf::Mouse::Left)
                     isDragging = false;
                 break;
 
             case sf::Event::MouseWheelScrolled:
+                Rerender = true;
                 handleMouseWheel(event);
                 break;
 
             case sf::Event::MouseMoved:
+                Rerender = true;
                 handleMouseMove(event);
                 break;
 

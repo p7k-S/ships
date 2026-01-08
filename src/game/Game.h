@@ -61,6 +61,7 @@ private:
 
     void processEvents();
     void update();
+    bool Rerender = true;
     void render();
     void renderWaitMove();
     void drawCornerDecorations(sf::RenderWindow& window);

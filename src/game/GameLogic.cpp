@@ -79,6 +79,7 @@ void Game::executeTroopAction() {
     } else {
         ++movesLeft;
     }
+    updateVisibleCells();
 
     --movesLeft;
     setMoveAmount(movesLeft);
